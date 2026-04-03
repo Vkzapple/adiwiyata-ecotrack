@@ -1,7 +1,7 @@
 """
 EcoTrack AI - AI Behavior Analysis Service
 =========================================
-Komponen inti kecerdasan sistem EcoTrack.
+Komponen intisistem EcoTrack.
 
 Menganalisis pola aktivitas setiap Pokja menggunakan:
 - Pandas untuk agregasi & time-series

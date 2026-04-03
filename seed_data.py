@@ -1,11 +1,4 @@
-"""
-EcoTrack AI - Seed Data Script
-================================
-Isi database dengan data contoh untuk demo & testing.
 
-Jalankan:
-    python seed_data.py
-"""
 
 import sys
 import os

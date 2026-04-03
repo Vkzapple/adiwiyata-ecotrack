@@ -1,7 +1,4 @@
-"""
-EcoTrack AI - API Routers
-Semua endpoint FastAPI diorganisir per domain.
-"""
+
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session

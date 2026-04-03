@@ -1,14 +1,4 @@
-"""
-EcoTrack AI — Smart Adiwiyata Management System
-================================================
-Backend FastAPI utama.
 
-Jalankan:
-    uvicorn main:app --reload --port 8000
-
-Dokumentasi API:
-    http://localhost:8000/docs
-"""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

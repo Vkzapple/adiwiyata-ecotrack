@@ -1,7 +1,4 @@
-"""
-EcoTrack AI - Database Models
-SQLAlchemy ORM models untuk semua entitas sistem
-"""
+
 
 from sqlalchemy import (
     create_engine, Column, Integer, String, Text, DateTime,
@@ -156,7 +153,7 @@ class SkorPokja(Base):
 
 # ─── DB Setup ─────────────────────────────────────────────────────────────────
 
-DATABASE_URL = "sqlite:///./ecotrack.db"
+DATABASE_URL = ""
 
 engine = create_engine(
     DATABASE_URL,
