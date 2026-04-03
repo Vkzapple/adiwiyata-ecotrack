@@ -1,0 +1,18 @@
+# Virtual Environment
+venv/
+.venv/
+
+# Database (opsional, tergantung mau include atau tidak)
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VSCode settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
