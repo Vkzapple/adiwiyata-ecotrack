@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin - Adiwiyata</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #064e3b;
+            background: radial-gradient(circle at top right, #065f46, #064e3b, #022c22);
+            color: #1e293b;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .scroll-container {
+            min-height: 125vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            position: relative;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-focus-effect:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.1);
+        }
+
+        @keyframes leafFloat {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-10px) rotate(10deg); }
+        }
+
+        .float-icon {
+            animation: leafFloat 3s ease-in-out infinite;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-gradient:hover {
+            box-shadow: 0 15px 30px -10px rgba(5, 150, 105, 0.4);
+            transform: translateY(-2px);
+        }
+
+        input[type="checkbox"]:checked + i {
+            opacity: 1;
+        }
+
+        body::-webkit-scrollbar {
+            width: 6px;
+        }
+        body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-emerald-500/20 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/40 rounded-full blur-[120px]"></div>
+        <div class="absolute top-[40%] left-[20%] w-[30%] h-[30%] bg-emerald-400/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <main class="scroll-container">
+        <div class="w-full max-w-[420px]">
+            
+            <div class="glass-card w-full p-8 md:p-10 rounded-[2.5rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.4)] relative">
+                
+                <a href="/dashboard" target="_top" class="inline-flex items-center space-x-2 text-slate-400 hover:text-emerald-600 transition-colors group mb-8 font-bold text-[10px] uppercase tracking-widest">
+                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="text-center mb-10">
+                    <div class="relative inline-block mb-6">
+                        <div class="absolute -inset-3 bg-emerald-400/20 rounded-full blur-xl animate-pulse"></div>
+                        <div class="relative bg-white w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl">
+                            <i class="fas fa-leaf text-emerald-600 text-3xl float-icon"></i>
+                        </div>
+                    </div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Adi<span class="text-emerald-600">wiyata</span></h1>
+                    <p class="text-[10px] font-black text-emerald-600/70 uppercase tracking-[4px] mt-4">Security Portal</p>
+                </div>
+
+                <form id="loginForm" class="space-y-6">
+                    <div class="space-y-2 group input-focus-effect transition-all duration-300">
+                        <label for="email" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Admin Email</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                                <i class="far fa-envelope text-lg"></i>
+                            </span>
+                            <input type="email" id="email" required
+                                class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-semibold text-slate-700 placeholder-slate-300"
+                                placeholder="admin@example.com">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 group input-focus-effect transition-all duration-300">
+                        <label for="password" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Master Key</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                                <i class="fas fa-fingerprint text-lg"></i>
+                            </span>
+                            <input type="password" id="password" required
+                                class="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-semibold text-slate-700 placeholder-slate-300"
+                                placeholder="••••••••">
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-300 hover:text-emerald-600 transition-colors">
+                                <i class="far fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3 px-1">
+                        <div class="relative flex items-center">
+                            <input type="checkbox" id="remember" class="w-5 h-5 appearance-none border-2 border-slate-200 rounded-lg checked:bg-emerald-600 checked:border-emerald-600 cursor-pointer transition-all">
+                            <i class="fas fa-check absolute text-[10px] text-white opacity-0 pointer-events-none left-1.5 transition-opacity"></i>
+                        </div>
+                        <label for="remember" class="text-xs text-slate-500 cursor-pointer font-bold select-none tracking-tight">Ingat perangkat ini</label>
+                    </div>
+
+                    <button type="submit" 
+                        class="btn-gradient w-full text-white font-black py-5 px-4 rounded-[1.25rem] shadow-xl flex items-center justify-center space-x-3 group active:scale-[0.98]">
+                        <span class="tracking-widest uppercase text-sm">Masuk Sistem</span>
+                        <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+
+                <div class="mt-10 text-center">
+                    <p class="text-[9px] text-slate-400 font-bold tracking-[2px] uppercase mb-4">Adiwiyata - Pokja Inovasi</p>
+                    <div class="flex justify-center space-x-6 opacity-20 grayscale hover:opacity-40 transition-opacity">
+                        <i class="fab fa-shield-halved text-xl"></i>
+                        <i class="fas fa-lock text-xl"></i>
+                        <i class="fas fa-server text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 transition-all duration-500 z-50 border border-slate-800">
+        <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
+            <i class="fas fa-check text-emerald-400"></i>
+        </div>
+        <span id="toastMessage" class="text-sm font-bold tracking-tight"></span>
+    </div>
+      <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+
+    togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        eyeIcon.classList.toggle('fa-eye');
+        eyeIcon.classList.toggle('fa-eye-slash');
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const originalContent = submitBtn.innerHTML;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> <span class="tracking-widest uppercase text-sm">Memproses...</span>';
+
+        const email    = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Simpan data user ke localStorage
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                showToast('Login berhasil! Mengalihkan...', 'success');
+
+                // Redirect berdasarkan role
+                setTimeout(() => {
+                    if (data.user.role === 'admin') {
+                        window.location.href = '/static/admin/index.html';
+                    } else if (data.user.role === 'ketua') {
+                        window.location.href = '/static/ketua/index.html';
+                    } else {
+                        window.location.href = '/static/dashboard/index.html';
+                    }
+                }, 1500);
+            } else {
+                showToast(data.message || 'Login gagal', 'error');
+            }
+
+        } catch (err) {
+            showToast('Tidak dapat terhubung ke server', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalContent;
+        }
+    });
+
+    function showToast(message, type = 'success') {
+        toastMessage.innerText = message;
+
+        // Warna toast sesuai type
+        if (type === 'error') {
+            toast.classList.add('border-red-800');
+            toast.querySelector('.w-8').classList.replace('bg-emerald-500/20', 'bg-red-500/20');
+            toast.querySelector('i').classList.replace('text-emerald-400', 'text-red-400');
+            toast.querySelector('i').classList.replace('fa-check', 'fa-times');
+        }
+
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 4000);
+    }
+});
+</script>
+</body>
+</html>
