@@ -4,6 +4,17 @@ venv/
 
 # Database (opsional, tergantung mau include atau tidak)
 *.db
+=======
+# dependencies
+node_modules/
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
 # Python cache
 __pycache__/
