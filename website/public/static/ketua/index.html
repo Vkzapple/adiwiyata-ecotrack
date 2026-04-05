@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ketua Pokja - Panel Manajemen Kegiatan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
+        body { font-family: "Plus Jakarta Sans", sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .sidebar-link.active { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.2); }
+        .sidebar-link.active i { color: white !important; opacity: 1; }
+        .modal-active { display: flex !important; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input:focus, select:focus, textarea:focus { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,0.1); }
+        .skeleton { background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row relative">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20">
+        <div class="p-8 flex items-center space-x-4">
+            <div class="relative">
+                <div class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"></div>
+                <div class="relative w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pokja Panel</p>
+            </div>
+        </div>
+        <nav class="mt-4 px-6 space-y-2">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Menu Utama</p>
+            <button onclick="switchTab('kegiatan')" id="nav-kegiatan" class="sidebar-link active w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 group">
+                <i class="fas fa-tasks mr-3 w-5 opacity-70"></i> Kelola Kegiatan
+            </button>
+            <button onclick="switchTab('laporan')" id="nav-laporan" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
+                <i class="fas fa-file-alt mr-3 w-5 opacity-70"></i> Laporan Kegiatan
+            </button>
+            <button onclick="switchTab('insight')" id="nav-insight" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
+                <i class="fas fa-robot mr-3 w-5 opacity-70"></i> AI Insight Pokja
+            </button>
+            <div class="pt-8">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Akun</p>
+                <button onclick="confirmLogout()" class="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group">
+                    <i class="fas fa-sign-out-alt mr-3 w-5 group-hover:translate-x-1 transition-transform"></i> Keluar Sistem
+                </button>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#f8fafc]">
+
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 fade-up">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" id="pageTitle">Manajemen Kegiatan</h2>
+                <p class="text-slate-500 mt-1" id="pageSubtitle">Input, edit, dan dokumentasikan hasil kerja Pokja Anda.</p>
+            </div>
+            <div class="flex items-center space-x-4 bg-white p-3 rounded-[2rem] border border-slate-100 shadow-sm">
+                <div class="text-right hidden sm:block pl-4">
+                    <p class="text-sm font-black text-slate-900" id="currentLeaderName">–</p>
+                    <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider" id="currentPokjaName">Memuat...</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-emerald-400 font-black shadow-lg" id="userInitial">?</div>
+            </div>
+        </header>
+
+        <!-- ── TAB: KEGIATAN ── -->
+        <section id="section-kegiatan" class="fade-up">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-file-alt"></i></div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Kegiatan</p>
+                        <h3 class="text-2xl font-black text-slate-900" id="activityCount">–</h3>
+                    </div>
+                </div>
+                <button onclick="openAddModal()" class="md:col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] font-bold flex items-center justify-center space-x-3 shadow-xl shadow-emerald-200 transition-all active:scale-95 group py-4">
+                    <i class="fas fa-plus-circle text-xl group-hover:rotate-90 transition-transform duration-300"></i>
+                    <span class="text-lg">Input Kegiatan Baru</span>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[2px]">
+                                <th class="p-8">Kegiatan</th>
+                                <th class="p-4">Tanggal</th>
+                                <th class="p-4">Peserta</th>
+                                <th class="p-4">Status</th>
+                                <th class="text-right p-8">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderActivityTable" class="text-sm text-slate-600">
+                            <tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── TAB: LAPORAN ── -->
+        <section id="section-laporan" class="hidden fade-up space-y-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-extrabold text-slate-900">Laporan Kegiatan (Auto-Generated)</h3>
+                <span class="text-xs text-slate-400 font-bold bg-slate-100 px-4 py-2 rounded-xl">Dibuat otomatis oleh AI</span>
+            </div>
+            <div id="laporanList" class="space-y-4">
+                <div class="skeleton h-32 w-full"></div>
+                <div class="skeleton h-32 w-full"></div>
+            </div>
+        </section>
+
+        <!-- ── TAB: AI INSIGHT ── -->
+        <section id="section-insight" class="hidden fade-up space-y-6">
+            <h3 class="text-xl font-extrabold text-slate-900">AI Insight — Pokja Kamu</h3>
+            <div id="insightContent">
+                <div class="skeleton h-48 w-full"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Input Kegiatan -->
+    <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 items-center justify-center p-6 overflow-y-auto">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl my-8 overflow-hidden">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-xl font-extrabold text-slate-900 flex items-center">
+                    <i class="fas fa-clipboard-list mr-3 text-emerald-500"></i>
+                    <span id="modalTitle">Input Kegiatan Baru</span>
+                </h3>
+                <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-all">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form class="p-8 space-y-5" id="activityForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Nama Kegiatan</label>
+                        <input type="text" id="activityName" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="Contoh: Penanaman Pohon Perindang">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Tanggal</label>
+                        <input type="date" id="activityDate" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Jumlah Peserta</label>
+                        <input type="number" id="activityPeserta" min="0" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="25">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Lokasi</label>
+                        <input type="text" id="activityLokasi" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="Taman Sekolah">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Status</label>
+                        <select id="activityStatus" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-bold text-slate-700">
+                            <option value="planned">Belum Terlaksana</option>
+                            <option value="ongoing">Sedang Dilaksanakan</option>
+                            <option value="done">Selesai</option>
+                            <option value="cancelled">Dibatalkan</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Kendala (opsional)</label>
+                        <input type="text" id="activityKendala" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="Alat cangkul kurang, cuaca hujan, dll">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Hasil Kegiatan (opsional)</label>
+                        <input type="text" id="activityHasil" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="30 bibit berhasil ditanam, dll">
+                    </div>
+
+                    <!-- Toggle generate laporan -->
+                    <div class="col-span-2 flex items-center space-x-3 bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                        <input type="checkbox" id="generateLaporan" checked class="w-5 h-5 accent-emerald-600">
+                        <label for="generateLaporan" class="text-sm font-bold text-emerald-700 cursor-pointer">
+                            <i class="fas fa-robot mr-2"></i>Auto-generate laporan setelah simpan
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black py-4 rounded-2xl transition-all">BATAL</button>
+                    <button type="submit" id="submitBtn" class="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-100 transition-all active:scale-95">
+                        SIMPAN KEGIATAN
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center space-x-3 transition-all duration-500 z-50">
+        <i class="fas fa-check-circle text-emerald-400" id="toastIcon"></i>
+        <span id="toastMsg" class="text-sm font-bold"></span>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:3001/api";
+        const AI_URL  = "http://localhost:3001/api/ai";
+
+        // Ambil user dari localStorage (set saat login)
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        let currentPokjaId = null;
+
+        // ── Init ──────────────────────────────────────────────────────────────
+
+        async function init() {
+            // Tampilkan info user
+            const name    = user.name  || "Ketua Pokja";
+            const pokja   = user.pokja || "–";
+            const initial = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+
+            document.getElementById('currentLeaderName').innerText = name;
+            document.getElementById('currentPokjaName').innerText  = "Ketua " + pokja;
+            document.getElementById('userInitial').innerText       = initial;
+
+            // Cari pokja_id berdasarkan nama pokja user
+            await loadPokjaId(pokja);
+            loadKegiatan();
+        }
+
+        async function loadPokjaId(namaPokja) {
+            try {
+                const res   = await fetch(`${API_URL}/pokja`);
+                const list  = await res.json();
+                // Cari pokja yang namanya cocok (case-insensitive)
+                const found = list.find(p =>
+                    (p.nama || p.name || '').toLowerCase() === namaPokja.toLowerCase()
+                );
+                if (found) currentPokjaId = found.id;
+            } catch(e) { console.error(e); }
+        }
+
+        // ── Tab Switching ─────────────────────────────────────────────────────
+
+        function switchTab(tab) {
+            ['kegiatan','laporan','insight'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('active','text-white');
+                document.getElementById(`nav-${t}`).classList.add('text-slate-500');
+            });
+            document.getElementById(`section-${tab}`).classList.remove('hidden');
+            document.getElementById(`nav-${tab}`).classList.add('active');
+            document.getElementById(`nav-${tab}`).classList.remove('text-slate-500');
+
+            if (tab === 'kegiatan') loadKegiatan();
+            if (tab === 'laporan')  loadLaporan();
+            if (tab === 'insight')  loadInsight();
+        }
+
+        // ── Load Kegiatan ─────────────────────────────────────────────────────
+
+        async function loadKegiatan() {
+            const tbody = document.getElementById('leaderActivityTable');
+            tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>';
+
+            try {
+                const url = currentPokjaId
+                    ? `${AI_URL.replace('/ai','')}/kegiatan/?pokja_id=${currentPokjaId}&limit=50`
+                    : `${AI_URL.replace('/ai','')}/kegiatan/?limit=50`;
+
+                // Gunakan Python AI endpoint langsung
+                const res  = await fetch(`http://localhost:8000/kegiatan/${currentPokjaId ? '?pokja_id='+currentPokjaId : ''}`);
+                const data = await res.json();
+
+                document.getElementById('activityCount').innerText = data.length;
+
+                if (!data.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic font-bold">Belum ada kegiatan. Klik "Input Kegiatan Baru" untuk mulai.</td></tr>';
+                    return;
+                }
+
+                const statusMap = {
+                    planned  : { label: 'Belum Terlaksana',      style: 'bg-slate-50 text-slate-500 border-slate-100'    },
+                    ongoing  : { label: 'Sedang Dilaksanakan',   style: 'bg-blue-50 text-blue-600 border-blue-100'       },
+                    done     : { label: 'Selesai',               style: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+                    cancelled: { label: 'Dibatalkan',            style: 'bg-rose-50 text-rose-600 border-rose-100'       },
+                };
+
+                tbody.innerHTML = data.map(k => {
+                    const s   = statusMap[k.status] || statusMap.planned;
+                    const tgl = new Date(k.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+                    return `
+                        <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
+                            <td class="p-8">
+                                <p class="font-extrabold text-slate-900">${k.judul}</p>
+                                ${k.lokasi ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>${k.lokasi}</p>` : ''}
+                            </td>
+                            <td class="p-4 text-xs font-bold text-slate-500">${tgl}</td>
+                            <td class="p-4 text-xs font-bold text-slate-700">${k.jumlah_peserta} orang</td>
+                            <td class="p-4">
+                                <span class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border ${s.style}">${s.label}</span>
+                            </td>
+                            <td class="p-8 text-right">
+                                <div class="flex justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-all">
+                                    <button onclick="generateLaporanSingle(${k.id}, '${k.judul}')" title="Generate Laporan" class="w-9 h-9 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
+                                        <i class="fas fa-robot text-xs"></i>
+                                    </button>
+                                    <button onclick="deleteKegiatan(${k.id})" title="Hapus" class="w-9 h-9 flex items-center justify-center bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                }).join('');
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-rose-500 font-bold">Gagal memuat data. Pastikan Python AI server berjalan.</td></tr>`;
+            }
+        }
+
+        // ── Load Laporan ──────────────────────────────────────────────────────
+
+        async function loadLaporan() {
+            const el = document.getElementById('laporanList');
+            el.innerHTML = '<div class="skeleton h-32 w-full"></div><div class="skeleton h-32 w-full mt-4"></div>';
+            try {
+                const url = currentPokjaId
+                    ? `http://localhost:8000/laporan/?pokja_id=${currentPokjaId}`
+                    : `http://localhost:8000/laporan/`;
+                const res  = await fetch(url);
+                const data = await res.json();
+
+                if (!data.length) {
+                    el.innerHTML = '<div class="text-center p-12 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold">Belum ada laporan. Generate laporan dari tab Kelola Kegiatan.</div>';
+                    return;
+                }
+
+                el.innerHTML = data.map(l => `
+                    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
+                                    <i class="fas fa-robot mr-1"></i> Auto-Generated
+                                </span>
+                                <h4 class="font-extrabold text-slate-900 text-lg mt-3">${l.judul}</h4>
+                            </div>
+                            <span class="text-xs text-slate-400 font-bold whitespace-nowrap ml-4">
+                                ${new Date(l.created_at).toLocaleDateString('id-ID')}
+                            </span>
+                        </div>
+                        <div class="bg-slate-50 rounded-2xl p-6 text-sm text-slate-600 leading-relaxed whitespace-pre-line font-medium border border-slate-100">
+                            ${l.konten}
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                el.innerHTML = '<div class="p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center">Gagal memuat laporan.</div>';
+            }
+        }
+
+        // ── Load AI Insight ───────────────────────────────────────────────────
+
+        async function loadInsight() {
+            const el = document.getElementById('insightContent');
+            if (!currentPokjaId) {
+                el.innerHTML = '<div class="p-8 bg-amber-50 text-amber-700 rounded-2xl font-bold text-center">Pokja tidak ditemukan di sistem AI. Pastikan nama pokja cocok.</div>';
+                return;
+            }
+            el.innerHTML = '<div class="skeleton h-48 w-full"></div>';
+            try {
+                const res  = await fetch(`${AI_URL}/insight/${currentPokjaId}`);
+                const data = await res.json();
+
+                const labelColor = {
+                    "Sangat Aktif" : "text-emerald-600 bg-emerald-50 border-emerald-200",
+                    "Aktif"        : "text-blue-600 bg-blue-50 border-blue-200",
+                    "Cukup Aktif"  : "text-yellow-600 bg-yellow-50 border-yellow-200",
+                    "Kurang Aktif" : "text-orange-600 bg-orange-50 border-orange-200",
+                    "Tidak Aktif"  : "text-rose-600 bg-rose-50 border-rose-200",
+                };
+                const lc = labelColor[data.label] ?? "text-slate-600 bg-slate-50 border-slate-200";
+
+                el.innerHTML = `
+                    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pokja Kamu</p>
+                                <h3 class="text-2xl font-extrabold text-slate-900">${data.pokja_nama}</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-4xl font-black text-emerald-600">${data.skor.toFixed(0)}</span>
+                                <span class="text-slate-400 font-bold">/100</span>
+                                <p class="text-xs font-black px-3 py-1 rounded-xl border mt-2 inline-block ${lc}">${data.label}</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-slate-100 rounded-full h-4">
+                            <div class="h-4 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000" style="width:${data.skor}%"></div>
+                        </div>
+
+                        <div class="bg-slate-900 rounded-2xl p-6">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                                <i class="fas fa-robot mr-2 text-emerald-400"></i>AI Analysis
+                            </p>
+                            ${data.insights.map(ins =>
+                                `<p class="text-sm text-slate-200 font-medium leading-relaxed">${ins}</p>`
+                            ).join('')}
+                        </div>
+                    </div>`;
+            } catch(e) {
+                el.innerHTML = '<div class="p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center">Gagal memuat insight AI.</div>';
+            }
+        }
+
+        // ── Modal & Form ──────────────────────────────────────────────────────
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = "Input Kegiatan Baru";
+            document.getElementById('activityForm').reset();
+            document.getElementById('activityModal').classList.add('modal-active');
+            document.getElementById('activityModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('activityModal').classList.remove('modal-active');
+            document.getElementById('activityModal').classList.add('hidden');
+        }
+
+        document.getElementById('activityForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Menyimpan...';
+
+            const nama      = document.getElementById('activityName').value;
+            const tanggal   = document.getElementById('activityDate').value;
+            const peserta   = parseInt(document.getElementById('activityPeserta').value);
+            const lokasi    = document.getElementById('activityLokasi').value;
+            const status    = document.getElementById('activityStatus').value;
+            const kendala   = document.getElementById('activityKendala').value;
+            const hasil     = document.getElementById('activityHasil').value;
+            const doGenerate= document.getElementById('generateLaporan').checked;
+
+            if (!currentPokjaId) {
+                showToast('Pokja tidak ditemukan di sistem AI!', 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'SIMPAN KEGIATAN';
+                return;
+            }
+
+            try {
+                const resK = await fetch('http://localhost:8000/kegiatan/', {
+                    method : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body   : JSON.stringify({
+                        pokja_id       : currentPokjaId,
+                        judul          : nama,
+                        tanggal        : tanggal + 'T08:00:00',
+                        jumlah_peserta : peserta,
+                        lokasi         : lokasi || null,
+                        kendala        : kendala || null,
+                        hasil          : hasil || null,
+                        status         : status,
+                    })
+                });
+
+                if (!resK.ok) throw new Error('Gagal simpan kegiatan');
+                const kegiatan = await resK.json();
+
+                // 2. Auto-generate laporan jika dicentang
+                if (doGenerate) {
+                    const pokjaName = user.pokja || 'Pokja';
+                    await fetch('http://localhost:8000/laporan/generate', {
+                        method : 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body   : JSON.stringify({
+                            kegiatan_id        : kegiatan.id,
+                            nama_kegiatan      : nama,
+                            tanggal            : tanggal + 'T08:00:00',
+                            peserta            : peserta,
+                            lokasi             : lokasi || null,
+                            kendala            : kendala || null,
+                            hasil              : hasil || null,
+                            nama_pokja         : pokjaName,
+                        })
+                    });
+                }
+
+                // 3. Recalculate skor AI
+                await fetch(`${AI_URL}/recalculate`, { method: 'POST' });
+
+                showToast(doGenerate ? 'Kegiatan & laporan berhasil disimpan!' : 'Kegiatan berhasil disimpan!');
+                closeModal();
+                loadKegiatan();
+
+            } catch(err) {
+                showToast('Gagal menyimpan. Cek koneksi server.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'SIMPAN KEGIATAN';
+            }
+        };
+
+        async function generateLaporanSingle(kegiatanId, judul) {
+            showToast('Membuat laporan...', 'info');
+            try {
+                const resK  = await fetch(`http://localhost:8000/kegiatan/${kegiatanId}`);
+                const k     = await resK.json();
+                const pokjaName = user.pokja || 'Pokja';
+
+                const res = await fetch('http://localhost:8000/laporan/generate', {
+                    method : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body   : JSON.stringify({
+                        kegiatan_id   : kegiatanId,
+                        nama_kegiatan : k.judul,
+                        tanggal       : k.tanggal,
+                        peserta       : k.jumlah_peserta,
+                        lokasi        : k.lokasi,
+                        kendala       : k.kendala,
+                        hasil         : k.hasil,
+                        nama_pokja    : pokjaName,
+                    })
+                });
+                if (res.ok) { showToast('Laporan berhasil di-generate!'); }
+                else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Laporan sudah ada.', 'error');
+                }
+            } catch(e) {
+                showToast('Gagal generate laporan.', 'error');
+            }
+        }
+
+        async function deleteKegiatan(id) {
+            if (!confirm('Hapus kegiatan ini?')) return;
+            try {
+                await fetch(`http://localhost:8000/kegiatan/${id}`, { method: 'DELETE' });
+                showToast('Kegiatan berhasil dihapus.');
+                loadKegiatan();
+            } catch(e) { showToast('Gagal menghapus.', 'error'); }
+        }
+
+        // ── Toast ─────────────────────────────────────────────────────────────
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            document.getElementById('toastMsg').innerText = msg;
+            icon.className = type === 'error'
+                ? 'fas fa-times-circle text-rose-400'
+                : type === 'info'
+                ? 'fas fa-circle-notch fa-spin text-blue-400'
+                : 'fas fa-check-circle text-emerald-400';
+            toast.classList.remove('translate-y-20','opacity-0');
+            toast.classList.add('translate-y-0','opacity-100');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20','opacity-0');
+                toast.classList.remove('translate-y-0','opacity-100');
+            }, 3500);
+        }
+
+        function confirmLogout() {
+            if (confirm('Keluar dari sistem?')) {
+                localStorage.removeItem('user');
+                window.location.href = '/static/login/index.html';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
