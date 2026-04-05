@@ -1,285 +1,531 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Panel Kendali Utama</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
-    
-    body { 
-      font-family: "Plus Jakarta Sans", sans-serif; 
-      background-color: #f8fafc; 
-      color: #1e293b;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Panel Kendali Utama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
 
-    .sidebar-link.active { 
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
-    }
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+      }
 
-    .sidebar-link.active i { color: white !important; opacity: 1; }
+      .sidebar-link.active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+      }
 
-    .card-gradient { 
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
-    }
+      .sidebar-link.active i {
+        color: white !important;
+        opacity: 1;
+      }
 
-    .modal-active { display: flex !important; }
+      .card-gradient {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      }
 
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+      .modal-active {
+        display: flex !important;
+      }
 
-    /* Animation */
-    .fade-up { animation: fadeUp 0.5s ease-out forwards; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</head>
-<body class="min-h-screen flex flex-col md:flex-row">
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
 
-  <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20 transition-all duration-300">
-    <div class="p-8 flex items-center space-x-4">
-      <div class="relative">
-        <div class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"></div>
-        <div class="relative w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </div>
-      </div>
-      <div>
-        <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">ADI<span class="text-emerald-500">WIYATA</span></h1>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Management v1.0</p>
-      </div>
-    </div>
-
-    <nav class="mt-4 px-6 space-y-2">
-      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Main Menu</p>
-      
-      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-link active w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 group">
-        <i class="fas fa-th-large mr-3 w-5 opacity-70"></i> Dashboard
-      </button>
-
-      <button onclick="switchTab('activities')" id="nav-activities" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
-        <i class="fas fa-clipboard-list mr-3 w-5 opacity-70"></i> Data Kegiatan
-      </button>
-
-      <button onclick="switchTab('users')" id="nav-users" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
-        <i class="fas fa-users-cog mr-3 w-5 opacity-70"></i> Manajemen User
-      </button>
-
-      <div class="pt-8">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Sistem</p>
-        <button onclick="window.location.href = '/static/index.html'" class="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group">
-          <i class="fas fa-sign-out-alt mr-3 w-5 group-hover:translate-x-1 transition-transform"></i> Keluar Admin
-        </button>
-      </div>
-    </nav>
-  </aside>
-
-  <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#f8fafc]">
-    
-    <section id="section-dashboard" class="fade-up space-y-10">
-      <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Ringkasan Sistem</h2>
-          <p class="text-slate-500 mt-1">Data sinkronisasi dari MySQL database XAMPP.</p>
-        </div>
-        <button onclick="refreshData()" class="inline-flex items-center px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl shadow-sm hover:bg-slate-50 transition-all active:scale-95">
-          <i class="fas fa-sync-alt mr-2 text-emerald-500"></i> Refresh Data
-        </button>
-      </header>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="card-gradient p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
-          <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
-          <p class="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">Total Kegiatan</p>
-          <h3 class="text-5xl font-black" id="stat-total-activities">0</h3>
-        </div>
-
-        <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-          <p class="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">User Terdaftar</p>
-          <h3 class="text-5xl font-black text-slate-900" id="stat-total-users">0</h3>
-        </div>
-
-        <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-          <p class="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">Server Status</p>
-          <div id="serverStatus" class="flex items-center mt-3 p-3 bg-slate-50 rounded-2xl">
-            <i class="fas fa-circle-notch animate-spin text-slate-400 mr-3"></i>
-            <span class="font-bold text-slate-500 uppercase text-xs tracking-wider">Checking Connection...</span>
+      /* Animation */
+      .fade-up {
+        animation: fadeUp 0.5s ease-out forwards;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col md:flex-row">
+    <aside
+      class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20 transition-all duration-300"
+    >
+      <div class="p-8 flex items-center space-x-4">
+        <div class="relative">
+          <div
+            class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"
+          ></div>
+          <div
+            class="relative w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-7 w-7 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
           </div>
         </div>
-      </div>
-      
-      <div id="ai-ranking-container"></div>
-
-      <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-2xl">
-        <div class="z-10">
-          <h4 class="text-2xl font-bold mb-2">Koneksi Database Aktif</h4>
-          <p class="text-slate-400 text-sm max-w-lg leading-relaxed">Seluruh data pengguna dan kegiatan diambil secara otomatis dari MySQL. Pastikan Service MySQL di XAMPP Control Panel sudah dalam posisi 'Running'.</p>
+        <div>
+          <h1
+            class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none"
+          >
+            ADI<span class="text-emerald-500">WIYATA</span>
+          </h1>
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1"
+          >
+            Management v1.0
+          </p>
         </div>
-        <div class="md:ml-auto z-10">
-            <span class="px-6 py-3 bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 rounded-2xl font-bold text-sm">
-                <i class="fas fa-link mr-2"></i> localhost:3000
+      </div>
+
+      <nav class="mt-4 px-6 space-y-2">
+        <p
+          class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2"
+        >
+          Main Menu
+        </p>
+
+        <button
+          onclick="switchTab('dashboard')"
+          id="nav-dashboard"
+          class="sidebar-link active w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 group"
+        >
+          <i class="fas fa-th-large mr-3 w-5 opacity-70"></i> Dashboard
+        </button>
+
+        <button
+          onclick="switchTab('activities')"
+          id="nav-activities"
+          class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group"
+        >
+          <i class="fas fa-clipboard-list mr-3 w-5 opacity-70"></i> Data
+          Kegiatan
+        </button>
+
+        <button
+          onclick="switchTab('users')"
+          id="nav-users"
+          class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group"
+        >
+          <i class="fas fa-users-cog mr-3 w-5 opacity-70"></i> Manajemen User
+        </button>
+
+        <div class="pt-8">
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2"
+          >
+            Sistem
+          </p>
+          <button
+            onclick="openLogoutModal()"
+            class="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group"
+          >
+            <i
+              class="fas fa-sign-out-alt mr-3 w-5 group-hover:translate-x-1 transition-transform"
+            ></i>
+            Keluar Admin
+          </button>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#f8fafc]">
+      <section id="section-dashboard" class="fade-up space-y-10">
+        <header
+          class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Ringkasan Sistem
+            </h2>
+            <p class="text-slate-500 mt-1">
+              Data sinkronisasi dari MySQL database XAMPP.
+            </p>
+          </div>
+          <button
+            onclick="refreshData()"
+            class="inline-flex items-center px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl shadow-sm hover:bg-slate-50 transition-all active:scale-95"
+          >
+            <i class="fas fa-sync-alt mr-2 text-emerald-500"></i> Refresh Data
+          </button>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div
+            class="card-gradient p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden"
+          >
+            <div
+              class="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"
+            ></div>
+            <p
+              class="text-slate-400 text-xs font-black uppercase tracking-widest mb-2"
+            >
+              Total Kegiatan
+            </p>
+            <h3 class="text-5xl font-black" id="stat-total-activities">0</h3>
+          </div>
+
+          <div
+            class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50"
+          >
+            <p
+              class="text-slate-400 text-xs font-black uppercase tracking-widest mb-2"
+            >
+              User Terdaftar
+            </p>
+            <h3
+              class="text-5xl font-black text-slate-900"
+              id="stat-total-users"
+            >
+              0
+            </h3>
+          </div>
+
+          <div
+            class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50"
+          >
+            <p
+              class="text-slate-400 text-xs font-black uppercase tracking-widest mb-2"
+            >
+              Server Status
+            </p>
+            <div
+              id="serverStatus"
+              class="flex items-center mt-3 p-3 bg-slate-50 rounded-2xl"
+            >
+              <i
+                class="fas fa-circle-notch animate-spin text-slate-400 mr-3"
+              ></i>
+              <span
+                class="font-bold text-slate-500 uppercase text-xs tracking-wider"
+                >Checking Connection...</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div id="ai-ranking-container"></div>
+
+        <div
+          class="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-2xl"
+        >
+          <div class="z-10">
+            <h4 class="text-2xl font-bold mb-2">Koneksi Database Aktif</h4>
+            <p class="text-slate-400 text-sm max-w-lg leading-relaxed">
+              Seluruh data pengguna dan kegiatan diambil secara otomatis dari
+              MySQL. Pastikan Service MySQL di XAMPP Control Panel sudah dalam
+              posisi 'Running'.
+            </p>
+          </div>
+          <div class="md:ml-auto z-10">
+            <span
+              class="px-6 py-3 bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 rounded-2xl font-bold text-sm"
+            >
+              <i class="fas fa-link mr-2"></i> localhost:3000
             </span>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="section-users" class="hidden fade-up space-y-8">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Manajemen User</h2>
-          <p class="text-slate-500">Kelola izin akses akun ketua pokja dan administrator.</p>
+      <section id="section-users" class="hidden fade-up space-y-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+        >
+          <div>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Manajemen User
+            </h2>
+            <p class="text-slate-500">
+              Kelola izin akses akun ketua pokja dan administrator.
+            </p>
+          </div>
+          <button
+            onclick="openUserModal()"
+            class="flex items-center px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-xl hover:bg-emerald-600 transition-all active:scale-95"
+          >
+            <i class="fas fa-user-plus mr-3"></i> Tambah User Baru
+          </button>
         </div>
-        <button onclick="openUserModal()" class="flex items-center px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-xl hover:bg-emerald-600 transition-all active:scale-95">
-          <i class="fas fa-user-plus mr-3"></i> Tambah User Baru
-        </button>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="userGrid">
-        </div>
-    </section>
 
-    <section id="section-activities" class="hidden fade-up space-y-6">
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          id="userGrid"
+        ></div>
+      </section>
+
+      <section id="section-activities" class="hidden fade-up space-y-6">
         <h2 class="text-3xl font-extrabold text-slate-900">Data Kegiatan</h2>
-        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50">
-                    <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[2px]">
-                        <th class="p-8">Pokja & Nama Kegiatan</th>
-                        <th>Status</th>
-                        <th class="text-right p-8">Opsi</th>
-                    </tr>
-                </thead>
-                <tbody id="adminActivityList">
-                    <tr><td colspan="3" class="p-20 text-center text-slate-400 italic">Menunggu sinkronisasi data kegiatan...</td></tr>
-                </tbody>
-            </table>
+        <div
+          class="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden"
+        >
+          <table class="w-full text-left">
+            <thead class="bg-slate-50">
+              <tr
+                class="text-[10px] font-black text-slate-400 uppercase tracking-[2px]"
+              >
+                <th class="p-8">Pokja & Nama Kegiatan</th>
+                <th>Status</th>
+                <th class="text-right p-8">Opsi</th>
+              </tr>
+            </thead>
+            <tbody id="adminActivityList">
+              <tr>
+                <td colspan="3" class="p-20 text-center text-slate-400 italic">
+                  Menunggu sinkronisasi data kegiatan...
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-    </section>
-  </main>
+      </section>
+    </main>
 
-  <div id="userModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 items-center justify-center p-6">
-    <div class="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden scale-in">
-      <div class="p-8 border-b border-slate-50 flex justify-between items-center">
-        <h3 class="text-xl font-extrabold text-slate-900">Buat Akun Baru</h3>
-        <button onclick="closeUserModal()" class="text-slate-400 hover:text-rose-500 transition-colors">
-          <i class="fas fa-times text-xl"></i>
-        </button>
+    <div
+      id="userModal"
+      class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 items-center justify-center p-6"
+    >
+      <div
+        class="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden scale-in"
+      >
+        <div
+          class="p-8 border-b border-slate-50 flex justify-between items-center"
+        >
+          <h3 class="text-xl font-extrabold text-slate-900">Buat Akun Baru</h3>
+          <button
+            onclick="closeUserModal()"
+            class="text-slate-400 hover:text-rose-500 transition-colors"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <form id="userForm" class="p-8 space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="col-span-2">
+              <label
+                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                >Nama Lengkap</label
+              >
+              <input
+                type="text"
+                id="uName"
+                required
+                class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+              />
+            </div>
+            <div class="col-span-2">
+              <label
+                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                >Email Sekolah</label
+              >
+              <input
+                type="email"
+                id="uEmail"
+                required
+                class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                >Pilih Pokja</label
+              >
+              <select
+                id="uPokja"
+                required
+                class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none"
+              >
+                <option value="">Memuat...</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                >Role Akses</label
+              >
+              <select
+                id="uRole"
+                required
+                class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none"
+              >
+                <option value="Ketua Pokja">Ketua Pokja</option>
+                <option value="Pengawas">Pengawas / Admin</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                >Password</label
+              >
+              <input
+                type="password"
+                id="uPassword"
+                required
+                class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                >Konfirmasi</label
+              >
+              <input
+                type="password"
+                id="uConfirmPassword"
+                required
+                class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none"
+              />
+            </div>
+          </div>
+
+          <p
+            id="passwordError"
+            class="hidden text-xs text-rose-500 font-bold bg-rose-50 p-4 rounded-xl text-center border border-rose-100"
+          >
+            Konfirmasi password tidak cocok!
+          </p>
+
+          <button
+            type="submit"
+            class="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95 mt-4"
+          >
+            SIMPAN PENGGUNA KE DATABASE
+          </button>
+        </form>
       </div>
-      
-      <form id="userForm" class="p-8 space-y-5">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div class="col-span-2">
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Nama Lengkap</label>
-            <input type="text" id="uName" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Email Sekolah</label>
-            <input type="email" id="uEmail" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all" />
-          </div>
-          <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Pilih Pokja</label>
-            <select id="uPokja" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none">
-              <option value="">Memuat...</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Role Akses</label>
-            <select id="uRole" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none">
-              <option value="Ketua Pokja">Ketua Pokja</option>
-              <option value="Pengawas">Pengawas / Admin</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Password</label>
-            <input type="password" id="uPassword" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none" />
-          </div>
-          <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Konfirmasi</label>
-            <input type="password" id="uConfirmPassword" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none" />
-          </div>
-        </div>
-
-        <p id="passwordError" class="hidden text-xs text-rose-500 font-bold bg-rose-50 p-4 rounded-xl text-center border border-rose-100">Konfirmasi password tidak cocok!</p>
-
-        <button type="submit" class="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95 mt-4">
-          SIMPAN PENGGUNA KE DATABASE
-        </button>
-      </form>
     </div>
-  </div>
-<script>
-    const API_URL  = "http://localhost:3001/api";
-    const AI_URL   = "http://localhost:3001/api/ai";
+    <div
+      id="logoutModal"
+      class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 items-center justify-center p-6"
+    >
+      <div
+        class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 text-center space-y-6"
+      >
+        <div
+          class="w-16 h-16 mx-auto rounded-2xl bg-rose-100 flex items-center justify-center"
+        >
+          <i class="fas fa-sign-out-alt text-rose-500 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-900">
+          Keluar dari Admin?
+        </h3>
+        <p class="text-slate-500 text-sm">
+          Session kamu akan diakhiri dan kembali ke halaman login.
+        </p>
 
-    async function init() {
+        <div class="flex gap-4 pt-4">
+          <button
+            onclick="closeLogoutModal()"
+            class="flex-1 py-3 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all"
+          >
+            Batal
+          </button>
+          <button
+            onclick="confirmLogout()"
+            class="flex-1 py-3 rounded-2xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition-all"
+          >
+            Keluar
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+      const API_URL = "http://localhost:3001/api";
+      const AI_URL = "http://localhost:3001/api/ai";
+
+      async function init() {
         await updateServerStatus();
         switchTab("dashboard");
         setInterval(updateServerStatus, 10000);
-    }
+      }
 
-    async function updateServerStatus() {
+      async function updateServerStatus() {
         const statusEl = document.getElementById("serverStatus");
         try {
-            const res = await fetch(`${API_URL}/health`, { cache: "no-store" });
-            if (res.ok) {
-                statusEl.innerHTML = `<i class="fas fa-check-circle text-emerald-500 mr-2"></i><span class="text-emerald-600 font-bold">MYSQL CONNECTED</span>`;
-                statusEl.className = "flex items-center mt-3 p-3 bg-emerald-50 rounded-2xl border border-emerald-100";
-            }
+          const res = await fetch(`${API_URL}/health`, { cache: "no-store" });
+          if (res.ok) {
+            statusEl.innerHTML = `<i class="fas fa-check-circle text-emerald-500 mr-2"></i><span class="text-emerald-600 font-bold">MYSQL CONNECTED</span>`;
+            statusEl.className =
+              "flex items-center mt-3 p-3 bg-emerald-50 rounded-2xl border border-emerald-100";
+          }
         } catch (e) {
-            statusEl.innerHTML = `<i class="fas fa-exclamation-triangle text-rose-500 mr-2"></i><span class="text-rose-600 font-bold">SERVER OFFLINE</span>`;
-            statusEl.className = "flex items-center mt-3 p-3 bg-rose-50 rounded-2xl border border-rose-100";
+          statusEl.innerHTML = `<i class="fas fa-exclamation-triangle text-rose-500 mr-2"></i><span class="text-rose-600 font-bold">SERVER OFFLINE</span>`;
+          statusEl.className =
+            "flex items-center mt-3 p-3 bg-rose-50 rounded-2xl border border-rose-100";
         }
-    }
+      }
 
-    function switchTab(tabId) {
-        document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
+      function switchTab(tabId) {
+        document
+          .querySelectorAll("main > section")
+          .forEach((s) => s.classList.add("hidden"));
         document.getElementById(`section-${tabId}`).classList.remove("hidden");
 
-        document.querySelectorAll(".sidebar-link").forEach(btn => {
-            btn.classList.remove("active");
-            btn.classList.add("text-slate-500");
+        document.querySelectorAll(".sidebar-link").forEach((btn) => {
+          btn.classList.remove("active");
+          btn.classList.add("text-slate-500");
         });
 
         const activeBtn = document.getElementById(`nav-${tabId}`);
         activeBtn.classList.add("active");
         activeBtn.classList.remove("text-slate-500");
 
-        if (tabId === "users")      renderUsers();
+        if (tabId === "users") renderUsers();
         if (tabId === "activities") renderActivities();
         updateStats();
-    }
+      }
 
-    async function updateStats() {
+      async function updateStats() {
         try {
-            const [usersRes, aiRes] = await Promise.all([
-                fetch(`${API_URL}/users`),
-                fetch(`${AI_URL}/dashboard`)
-            ]);
-            const users = await usersRes.json();
-            const ai    = await aiRes.json();
+          const [usersRes, aiRes] = await Promise.all([
+            fetch(`${API_URL}/users`),
+            fetch(`${AI_URL}/dashboard`),
+          ]);
+          const users = await usersRes.json();
+          const ai = await aiRes.json();
 
-            document.getElementById("stat-total-users").innerText      = users.length;
-            document.getElementById("stat-total-activities").innerText = ai.total_kegiatan ?? 0;
+          document.getElementById("stat-total-users").innerText = users.length;
+          document.getElementById("stat-total-activities").innerText =
+            ai.total_kegiatan ?? 0;
 
-            // Render AI ranking cards jika ada
-            renderAIRanking(ai);
+          // Render AI ranking cards jika ada
+          renderAIRanking(ai);
         } catch (e) {
-            document.getElementById("stat-total-users").innerText      = "–";
-            document.getElementById("stat-total-activities").innerText = "–";
+          document.getElementById("stat-total-users").innerText = "–";
+          document.getElementById("stat-total-activities").innerText = "–";
         }
-    }
+      }
 
-    function renderAIRanking(ai) {
+      function renderAIRanking(ai) {
         const container = document.getElementById("ai-ranking-container");
         if (!container) return;
 
@@ -287,11 +533,11 @@
         const insights = ai.insight_global ?? [];
 
         const labelColor = {
-            "Sangat Aktif" : "bg-emerald-100 text-emerald-700 border-emerald-200",
-            "Aktif"        : "bg-blue-100 text-blue-700 border-blue-200",
-            "Cukup Aktif"  : "bg-yellow-100 text-yellow-700 border-yellow-200",
-            "Kurang Aktif" : "bg-orange-100 text-orange-700 border-orange-200",
-            "Tidak Aktif"  : "bg-rose-100 text-rose-700 border-rose-200",
+          "Sangat Aktif": "bg-emerald-100 text-emerald-700 border-emerald-200",
+          Aktif: "bg-blue-100 text-blue-700 border-blue-200",
+          "Cukup Aktif": "bg-yellow-100 text-yellow-700 border-yellow-200",
+          "Kurang Aktif": "bg-orange-100 text-orange-700 border-orange-200",
+          "Tidak Aktif": "bg-rose-100 text-rose-700 border-rose-200",
         };
 
         container.innerHTML = `
@@ -302,13 +548,15 @@
                 </div>
 
                 <div class="space-y-3">
-                ${ranking.map((p, i) => `
+                ${ranking
+                  .map(
+                    (p, i) => `
                     <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-all">
                         <span class="text-2xl font-black text-slate-300 w-8">${i + 1}</span>
                         <div class="flex-1">
                             <div class="flex items-center justify-between mb-1">
                                 <span class="font-bold text-slate-800">${p.pokja_nama}</span>
-                                <span class="text-xs font-black px-3 py-1 rounded-xl border ${labelColor[p.label] ?? 'bg-slate-100 text-slate-500'}">${p.label}</span>
+                                <span class="text-xs font-black px-3 py-1 rounded-xl border ${labelColor[p.label] ?? "bg-slate-100 text-slate-500"}">${p.label}</span>
                             </div>
                             <div class="w-full bg-slate-200 rounded-full h-2">
                                 <div class="bg-emerald-500 h-2 rounded-full transition-all duration-700" style="width: ${p.skor_total}%"></div>
@@ -316,33 +564,42 @@
                             <p class="text-xs text-slate-400 mt-1">${p.skor_total.toFixed(1)}/100 — ${p.insight}</p>
                         </div>
                     </div>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
                 </div>
 
                 <div class="border-t border-slate-100 pt-6 space-y-2">
                     <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Global Insights</p>
-                    ${insights.map(ins => `
+                    ${insights
+                      .map(
+                        (ins) => `
                         <p class="text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-3 font-medium">${ins}</p>
-                    `).join('')}
+                    `,
+                      )
+                      .join("")}
                 </div>
             </div>
         `;
-    }
+      }
 
-    async function renderUsers() {
+      async function renderUsers() {
         const grid = document.getElementById("userGrid");
-        grid.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400 italic font-bold">Mengambil data MySQL...</div>';
+        grid.innerHTML =
+          '<div class="col-span-full py-20 text-center animate-pulse text-slate-400 italic font-bold">Mengambil data MySQL...</div>';
 
         try {
-            const res   = await fetch(`${API_URL}/users`);
-            const users = await res.json();
+          const res = await fetch(`${API_URL}/users`);
+          const users = await res.json();
 
-            if (users.length === 0) {
-                grid.innerHTML = `<div class="col-span-full p-12 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem] text-slate-400 font-bold">Belum ada akun di database.</div>`;
-                return;
-            }
+          if (users.length === 0) {
+            grid.innerHTML = `<div class="col-span-full p-12 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem] text-slate-400 font-bold">Belum ada akun di database.</div>`;
+            return;
+          }
 
-            grid.innerHTML = users.map(u => `
+          grid.innerHTML = users
+            .map(
+              (u) => `
                 <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl hover:-translate-y-2 transition-all duration-300">
                     <div class="flex justify-between items-start mb-6">
                         <div class="w-14 h-14 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-xl shadow-lg">
@@ -353,48 +610,54 @@
                     <h4 class="font-extrabold text-slate-900 text-lg mb-1">${u.name}</h4>
                     <p class="text-sm text-slate-400 mb-6 font-medium">${u.email}</p>
                     <div class="pt-6 border-t border-slate-50 flex justify-between items-center">
-                        <span class="text-xs text-slate-600 font-bold">Pokja: ${u.pokja ?? '-'}</span>
+                        <span class="text-xs text-slate-600 font-bold">Pokja: ${u.pokja ?? "-"}</span>
                         <button onclick="deleteUser(${u.id})" class="text-slate-300 hover:text-rose-500 transition-colors">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
-            `).join('');
+            `,
+            )
+            .join("");
         } catch (e) {
-            grid.innerHTML = `<div class="col-span-full p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center">Gagal memuat data dari server.</div>`;
+          grid.innerHTML = `<div class="col-span-full p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center">Gagal memuat data dari server.</div>`;
         }
-    }
+      }
 
-    async function renderActivities() {
+      async function renderActivities() {
         const tbody = document.getElementById("adminActivityList");
-        tbody.innerHTML = '<tr><td colspan="3" class="p-12 text-center animate-pulse text-slate-400">Mengambil data kegiatan...</td></tr>';
+        tbody.innerHTML =
+          '<tr><td colspan="3" class="p-12 text-center animate-pulse text-slate-400">Mengambil data kegiatan...</td></tr>';
 
         try {
-            const res  = await fetch(`${AI_URL}/ranking`);
-            const data = await res.json();
-            const ranking = data.ranking ?? [];
+          const res = await fetch(`${AI_URL}/ranking`);
+          const data = await res.json();
+          const ranking = data.ranking ?? [];
 
-            if (ranking.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-12 text-center text-slate-400 italic">Belum ada data kegiatan.</td></tr>';
-                return;
-            }
+          if (ranking.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="3" class="p-12 text-center text-slate-400 italic">Belum ada data kegiatan.</td></tr>';
+            return;
+          }
 
-            const labelColor = {
-                "Sangat Aktif" : "bg-emerald-100 text-emerald-700",
-                "Aktif"        : "bg-blue-100 text-blue-700",
-                "Cukup Aktif"  : "bg-yellow-100 text-yellow-700",
-                "Kurang Aktif" : "bg-orange-100 text-orange-700",
-                "Tidak Aktif"  : "bg-rose-100 text-rose-700",
-            };
+          const labelColor = {
+            "Sangat Aktif": "bg-emerald-100 text-emerald-700",
+            Aktif: "bg-blue-100 text-blue-700",
+            "Cukup Aktif": "bg-yellow-100 text-yellow-700",
+            "Kurang Aktif": "bg-orange-100 text-orange-700",
+            "Tidak Aktif": "bg-rose-100 text-rose-700",
+          };
 
-            tbody.innerHTML = ranking.map(p => `
+          tbody.innerHTML = ranking
+            .map(
+              (p) => `
                 <tr class="border-t border-slate-50 hover:bg-slate-50 transition-colors">
                     <td class="p-6 pl-8">
                         <p class="font-bold text-slate-800">${p.pokja_nama}</p>
-                        <p class="text-xs text-slate-400 mt-1">${p.insight ?? '-'}</p>
+                        <p class="text-xs text-slate-400 mt-1">${p.insight ?? "-"}</p>
                     </td>
                     <td class="p-6">
-                        <span class="text-xs font-black px-3 py-1.5 rounded-xl ${labelColor[p.label] ?? 'bg-slate-100 text-slate-500'}">
+                        <span class="text-xs font-black px-3 py-1.5 rounded-xl ${labelColor[p.label] ?? "bg-slate-100 text-slate-500"}">
                             ${p.label} — ${p.skor_total.toFixed(1)}/100
                         </span>
                     </td>
@@ -404,79 +667,123 @@
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `,
+            )
+            .join("");
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-rose-500 font-bold">Gagal memuat data AI.</td></tr>';
+          tbody.innerHTML =
+            '<tr><td colspan="3" class="p-8 text-center text-rose-500 font-bold">Gagal memuat data AI.</td></tr>';
         }
-    }
+      }
 
-    async function getInsight(pokjaId) {
+      async function getInsight(pokjaId) {
         try {
-            const res  = await fetch(`${AI_URL}/insight/${pokjaId}`);
-            const data = await res.json();
-            alert(`🤖 AI Insight\n\n${data.insights.join('\n')}`);
+          const res = await fetch(`${AI_URL}/insight/${pokjaId}`);
+          const data = await res.json();
+          alert(`🤖 AI Insight\n\n${data.insights.join("\n")}`);
         } catch (e) {
-            alert("Gagal mengambil insight AI.");
+          alert("Gagal mengambil insight AI.");
         }
-    }
+      }
 
-    async function loadPokjaOptions() {
+      async function loadPokjaOptions() {
         const select = document.getElementById("uPokja");
         try {
-            const res   = await fetch(`${API_URL}/pokja`);
-            const pokja = await res.json();
-            select.innerHTML = '<option value="">Pilih Pokja</option>' +
-                pokja.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+          const res = await fetch(`${API_URL}/pokja`);
+          const pokja = await res.json();
+          select.innerHTML =
+            '<option value="">Pilih Pokja</option>' +
+            pokja
+              .map((p) => `<option value="${p.name}">${p.name}</option>`)
+              .join("");
         } catch (e) {
-            select.innerHTML = '<option value="">Gagal memuat</option>';
+          select.innerHTML = '<option value="">Gagal memuat</option>';
         }
-    }
+      }
 
-    function openUserModal()  { document.getElementById("userModal").classList.add("modal-active"); loadPokjaOptions(); }
-    function closeUserModal() { document.getElementById("userModal").classList.remove("modal-active"); document.getElementById("userForm").reset(); }
+      function openUserModal() {
+        document.getElementById("userModal").classList.add("modal-active");
+        loadPokjaOptions();
+      }
+      function closeUserModal() {
+        document.getElementById("userModal").classList.remove("modal-active");
+        document.getElementById("userForm").reset();
+      }
 
-    document.getElementById("userForm").onsubmit = async e => {
+      document.getElementById("userForm").onsubmit = async (e) => {
         e.preventDefault();
         const pass = document.getElementById("uPassword").value;
         if (pass !== document.getElementById("uConfirmPassword").value) {
-            document.getElementById("passwordError").classList.remove("hidden");
-            return;
+          document.getElementById("passwordError").classList.remove("hidden");
+          return;
         }
         const userData = {
-            name    : document.getElementById("uName").value,
-            email   : document.getElementById("uEmail").value,
-            pokja   : document.getElementById("uPokja").value,
-            role    : document.getElementById("uRole").value,
-            password: pass,
+          name: document.getElementById("uName").value,
+          email: document.getElementById("uEmail").value,
+          pokja: document.getElementById("uPokja").value,
+          role: document.getElementById("uRole").value,
+          password: pass,
         };
         try {
-            const res = await fetch(`${API_URL}/register`, {
-                method : "POST",
-                headers: { "Content-Type": "application/json" },
-                body   : JSON.stringify(userData),
-            });
-            if (res.ok) { alert("User Berhasil Disimpan!"); closeUserModal(); renderUsers(); updateStats(); }
-            else { const err = await res.json(); alert("Gagal: " + err.message); }
-        } catch (e) { alert("Server tidak merespon"); }
-    };
-
-    async function deleteUser(id) {
-        if (!confirm("Hapus data user ini?")) return;
-        try {
-            await fetch(`${API_URL}/users/${id}`, { method: "DELETE" });
+          const res = await fetch(`${API_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(userData),
+          });
+          if (res.ok) {
+            alert("User Berhasil Disimpan!");
+            closeUserModal();
             renderUsers();
             updateStats();
-        } catch (e) { alert("Gagal menghapus data"); }
-    }
+          } else {
+            const err = await res.json();
+            alert("Gagal: " + err.message);
+          }
+        } catch (e) {
+          alert("Server tidak merespon");
+        }
+      };
 
-    function refreshData() {
+      async function deleteUser(id) {
+        if (!confirm("Hapus data user ini?")) return;
+        try {
+          await fetch(`${API_URL}/users/${id}`, { method: "DELETE" });
+          renderUsers();
+          updateStats();
+        } catch (e) {
+          alert("Gagal menghapus data");
+        }
+      }
+
+      function refreshData() {
         updateServerStatus();
         updateStats();
-        if (!document.getElementById("section-users").classList.contains("hidden"))      renderUsers();
-        if (!document.getElementById("section-activities").classList.contains("hidden")) renderActivities();
-    }
+        if (
+          !document.getElementById("section-users").classList.contains("hidden")
+        )
+          renderUsers();
+        if (
+          !document
+            .getElementById("section-activities")
+            .classList.contains("hidden")
+        )
+          renderActivities();
+      }
 
-    init();
-</script>
-</body>
+      init();
+      function openLogoutModal() {
+        document.getElementById("logoutModal").classList.add("flex");
+        document.getElementById("logoutModal").classList.remove("hidden");
+      }
+
+      function closeLogoutModal() {
+        document.getElementById("logoutModal").classList.remove("flex");
+        document.getElementById("logoutModal").classList.add("hidden");
+      }
+
+      function confirmLogout() {
+        window.location.href = "/static/index.html";
+      }
+    </script>
+  </body>
 </html>
