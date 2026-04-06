@@ -228,9 +228,9 @@ async function start() {
     try {
         await testDbConnection();
         const PORT = process.env.PORT || 3001;
-        server = app.listen(PORT, () => {
-            console.log(`Server backend berjalan di http://localhost:${PORT}`);
-        });
+server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server berjalan di http://0.0.0.0:${PORT}`);
+});
     } catch (err) {
         console.error("Gagal menghubungkan ke database. Server tidak dimulai.");
         console.error(err && err.message ? err.message : err);

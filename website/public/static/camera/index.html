@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamera Dokumentasi - Adiwiyata</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
+        body { font-family: "Plus Jakarta Sans", sans-serif; background: #0f172a; color: white; }
+        #videoFeed { transform: scaleX(-1); } /* mirror front camera */
+        .photo-thumb { transition: all 0.2s; }
+        .photo-thumb:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-4 gap-4">
+
+    <!-- Header -->
+    <div class="w-full max-w-lg flex items-center justify-between pt-2">
+        <button onclick="window.close()" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold text-sm">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </button>
+        <h1 class="font-extrabold text-white">📸 Dokumentasi Kegiatan</h1>
+        <div class="w-20"></div>
+    </div>
+
+    <!-- Camera View -->
+    <div class="w-full max-w-lg relative rounded-[2rem] overflow-hidden bg-slate-800 shadow-2xl" style="aspect-ratio: 4/3;">
+        <video id="videoFeed" autoplay playsinline class="w-full h-full object-cover"></video>
+        <canvas id="overlayCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+
+        <!-- Timestamp overlay live -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+            <p class="text-white font-black text-sm" id="liveTimestamp">–</p>
+            <p class="text-emerald-400 font-bold text-xs" id="livePokja">Adiwiyata</p>
+        </div>
+
+        <!-- Camera not available -->
+        <div id="cameraError" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-400 gap-4">
+            <i class="fas fa-camera-slash text-5xl"></i>
+            <p class="font-bold text-center px-8">Kamera tidak tersedia atau izin ditolak.<br>Gunakan upload foto manual.</p>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="w-full max-w-lg flex items-center justify-between gap-4">
+        <!-- Switch camera -->
+        <button onclick="switchCamera()" class="w-14 h-14 bg-slate-700 hover:bg-slate-600 rounded-full flex items-center justify-center transition-all active:scale-95">
+            <i class="fas fa-sync-alt text-white text-lg"></i>
+        </button>
+
+        <!-- Capture -->
+        <button onclick="capturePhoto()" id="captureBtn" class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all border-4 border-emerald-500">
+            <div class="w-14 h-14 bg-emerald-500 rounded-full"></div>
+        </button>
+
+        <!-- Upload from gallery -->
+        <label class="w-14 h-14 bg-slate-700 hover:bg-slate-600 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer">
+            <i class="fas fa-image text-white text-lg"></i>
+            <input type="file" accept="image/*" multiple class="hidden" onchange="handleGalleryUpload(this)">
+        </label>
+    </div>
+
+    <!-- Photo count -->
+    <p class="text-slate-400 text-sm font-bold" id="photoCount">0 foto diambil</p>
+
+    <!-- Captured photos grid -->
+    <div class="w-full max-w-lg">
+        <div id="photoGrid" class="grid grid-cols-3 gap-3"></div>
+    </div>
+
+    <!-- Done button -->
+    <div class="w-full max-w-lg pb-6">
+        <button onclick="doneCapturing()" id="doneBtn" class="hidden w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3">
+            <i class="fas fa-check-circle text-xl"></i>
+            <span id="doneBtnText">Gunakan Foto Ini</span>
+        </button>
+    </div>
+
+    <script>
+        // ── Config (dikirim dari parent window) ─────────────────────────────
+        const params   = new URLSearchParams(window.location.search);
+        const pokjaName = decodeURIComponent(params.get('pokja') || 'Adiwiyata');
+        const kegiatan  = decodeURIComponent(params.get('kegiatan') || '');
+
+        document.getElementById('livePokja').innerText = `${pokjaName} ${kegiatan ? '· ' + kegiatan : ''}`;
+
+        // ── State ────────────────────────────────────────────────────────────
+        let stream         = null;
+        let facingMode     = 'environment'; // belakang dulu
+        let capturedPhotos = []; // array of { dataUrl, file }
+
+        // ── Live timestamp ────────────────────────────────────────────────────
+        function updateTimestamp() {
+            const now = new Date();
+            const tgl = now.toLocaleDateString('id-ID', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+            const jam = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('liveTimestamp').innerText = `${tgl} · ${jam}`;
+        }
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+
+        // ── Camera ────────────────────────────────────────────────────────────
+        async function startCamera() {
+            try {
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+                    audio: false
+                });
+                document.getElementById('videoFeed').srcObject = stream;
+                document.getElementById('cameraError').classList.add('hidden');
+                // Mirror hanya untuk kamera depan
+                document.getElementById('videoFeed').style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+            } catch(e) {
+                document.getElementById('cameraError').classList.remove('hidden');
+                console.error('Camera error:', e);
+            }
+        }
+
+        async function switchCamera() {
+            facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            await startCamera();
+        }
+
+        // ── Capture with Timestamp Watermark ─────────────────────────────────
+        function capturePhoto() {
+            const video  = document.getElementById('videoFeed');
+            const canvas = document.createElement('canvas');
+            canvas.width  = video.videoWidth  || 1280;
+            canvas.height = video.videoHeight || 960;
+            const ctx = canvas.getContext('2d');
+
+            // Mirror flip kalau kamera depan
+            if (facingMode === 'user') {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            if (facingMode === 'user') ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+            // ── Watermark ────────────────────────────────────────────────────
+            addWatermark(ctx, canvas.width, canvas.height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+            // Convert ke File object
+            canvas.toBlob(blob => {
+                const now      = new Date();
+                const filename = `${pokjaName.replace(/\s/g,'-')}_${now.toISOString().slice(0,19).replace(/:/g,'-')}.jpg`;
+                const file     = new File([blob], filename, { type: 'image/jpeg' });
+                capturedPhotos.push({ dataUrl, file, filename });
+                renderPhotoGrid();
+            }, 'image/jpeg', 0.92);
+        }
+
+        function addWatermark(ctx, w, h) {
+            const now = new Date();
+            const tgl = now.toLocaleDateString('id-ID', {
+                weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+            });
+            const jam  = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const line1 = `${tgl} · ${jam}`;
+            const line2 = `${pokjaName}${kegiatan ? ' · ' + kegiatan : ''}`;
+
+            const fontSize = Math.max(16, Math.floor(w / 40));
+            ctx.font       = `bold ${fontSize}px Plus Jakarta Sans, sans-serif`;
+
+            // Background gradient strip
+            const grd = ctx.createLinearGradient(0, h - fontSize * 4, 0, h);
+            grd.addColorStop(0, 'rgba(0,0,0,0)');
+            grd.addColorStop(1, 'rgba(0,0,0,0.75)');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, h - fontSize * 4, w, fontSize * 4);
+
+            // Shadow effect
+            ctx.shadowColor   = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur    = 8;
+
+            // Baris 1: timestamp (putih)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(line1, 16, h - fontSize * 1.8);
+
+            // Baris 2: nama pokja (hijau)
+            ctx.fillStyle = '#34d399';
+            ctx.fillText(line2, 16, h - fontSize * 0.4);
+
+            // Logo kecil Adiwiyata di pojok kanan bawah
+            ctx.shadowBlur = 0;
+            ctx.font = `bold ${Math.floor(fontSize * 0.75)}px sans-serif`;
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            const logoText = '📋 Adiwiyata';
+            const logoW    = ctx.measureText(logoText).width;
+            ctx.fillText(logoText, w - logoW - 16, h - fontSize * 0.4);
+        }
+
+        // ── Gallery Upload ────────────────────────────────────────────────────
+        function handleGalleryUpload(input) {
+            const files = Array.from(input.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img    = new Image();
+                    img.onload   = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width  = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        addWatermark(ctx, canvas.width, canvas.height);
+                        const dataUrl  = canvas.toDataURL('image/jpeg', 0.92);
+                        const now      = new Date();
+                        const filename = `${pokjaName.replace(/\s/g,'-')}_gallery_${now.toISOString().slice(0,10)}.jpg`;
+                        canvas.toBlob(blob => {
+                            const newFile = new File([blob], filename, { type: 'image/jpeg' });
+                            capturedPhotos.push({ dataUrl, file: newFile, filename });
+                            renderPhotoGrid();
+                        }, 'image/jpeg', 0.92);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ── Photo Grid ────────────────────────────────────────────────────────
+        function renderPhotoGrid() {
+            const grid = document.getElementById('photoGrid');
+            const count = capturedPhotos.length;
+            document.getElementById('photoCount').innerText = `${count} foto diambil`;
+
+            if (count > 0) {
+                document.getElementById('doneBtn').classList.remove('hidden');
+                document.getElementById('doneBtnText').innerText = `Gunakan ${count} Foto Ini`;
+            }
+
+            grid.innerHTML = capturedPhotos.map((p, i) => `
+                <div class="relative photo-thumb rounded-2xl overflow-hidden bg-slate-700 cursor-pointer" style="aspect-ratio:1" onclick="removePhoto(${i})">
+                    <img src="${p.dataUrl}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all flex items-center justify-center">
+                        <i class="fas fa-trash text-white opacity-0 hover:opacity-100 text-lg"></i>
+                    </div>
+                    <div class="absolute top-2 right-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-all">
+                        <i class="fas fa-times text-white text-xs"></i>
+                    </div>
+                    <div class="absolute bottom-1 left-1 bg-black/60 rounded-lg px-1.5 py-0.5">
+                        <span class="text-white text-[8px] font-black">${i+1}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removePhoto(index) {
+            if (!confirm('Hapus foto ini?')) return;
+            capturedPhotos.splice(index, 1);
+            renderPhotoGrid();
+            if (capturedPhotos.length === 0) {
+                document.getElementById('doneBtn').classList.add('hidden');
+                document.getElementById('photoCount').innerText = '0 foto diambil';
+            }
+        }
+
+        // ── Done — kirim ke parent window ─────────────────────────────────────
+        function doneCapturing() {
+            if (capturedPhotos.length === 0) return;
+            // Kirim data ke parent window
+            if (window.opener) {
+                window.opener.receiveCapturedPhotos(capturedPhotos);
+                window.close();
+            }
+        }
+
+        // ── Start ─────────────────────────────────────────────────────────────
+        startCamera();
+    </script>
+</body>
+</html>

@@ -46,6 +46,8 @@ Thumbs.db
 # misc
 .DS_Store
 *.pem
+# Next.js
+.next/
 
 # debug
 npm-debug.log*
