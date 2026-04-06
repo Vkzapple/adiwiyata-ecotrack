@@ -199,6 +199,21 @@ app.post("/api/ai/laporan/generate", async (req, res) => {
         res.status(503).json({ message: "AI service tidak tersedia" });
     }
 });
+// Review laporan oleh pengawas
+app.post("/api/laporan/:id/review", async (req, res) => {
+    const { id } = req.params;
+    const { status_approve, catatan_pengawas, approved_by } = req.body;
+    try {
+        await query(
+            `UPDATE laporan SET status_approve=?, catatan_pengawas=?, approved_by=?, approved_at=NOW() WHERE id=?`,
+            [status_approve, catatan_pengawas, approved_by, id]
+        );
+        res.json({ message: "Laporan berhasil diperbarui" });
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ message: "Gagal memperbarui laporan" });
+    }
+});
 
 app.post("/api/ai/recalculate", async (req, res) => {
     try {

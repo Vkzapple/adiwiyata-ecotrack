@@ -1,8 +1,10 @@
-export default function Login() {
+"use client";
+
+export default function LoginPage() {
   return (
     <iframe
       src="/static/login/index.html"
-      className="w-full h-screen border-none"
+      style={{ width: "100%", height: "100vh", border: "none" }}
     />
   );
 }

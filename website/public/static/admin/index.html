@@ -686,20 +686,43 @@
         }
       }
 
-      async function loadPokjaOptions() {
-        const select = document.getElementById("uPokja");
-        try {
-          const res = await fetch(`${API_URL}/pokja`);
-          const pokja = await res.json();
-          select.innerHTML =
-            '<option value="">Pilih Pokja</option>' +
-            pokja
-              .map((p) => `<option value="${p.name}">${p.name}</option>`)
-              .join("");
-        } catch (e) {
-          select.innerHTML = '<option value="">Gagal memuat</option>';
+async function loadPokjaOptions() {
+    const select = document.getElementById("uPokja");
+    try {
+        // Ambil semua pokja
+        const [pokjaRes, usersRes] = await Promise.all([
+            fetch(`${API_URL}/pokja`),
+            fetch(`${API_URL}/users`)
+        ]);
+        const pokjaList = await pokjaRes.json();
+        const userList  = await usersRes.json();
+
+        // Kumpulkan pokja yang sudah ada ketuanya
+        const pokjaSudahAdaKetua = new Set(
+            userList
+                .filter(u => u.role === 'Ketua Pokja' && u.pokja)
+                .map(u => u.pokja)
+        );
+
+        // Filter pokja yang belum ada ketuanya
+        const pokjaTersedia = pokjaList.filter(p => 
+            !pokjaSudahAdaKetua.has(p.name)
+        );
+
+        if (pokjaTersedia.length === 0) {
+            select.innerHTML = '<option value="">Semua pokja sudah ada ketuanya</option>';
+            return;
         }
-      }
+
+        select.innerHTML = '<option value="">Pilih Pokja</option>' +
+            pokjaTersedia.map(p => 
+                `<option value="${p.name}">${p.name}</option>`
+            ).join('');
+
+    } catch(e) { 
+        select.innerHTML = '<option value="">Gagal memuat</option>'; 
+    }
+}
 
       function openUserModal() {
         document.getElementById("userModal").classList.add("modal-active");
@@ -782,7 +805,7 @@
       }
 
       function confirmLogout() {
-        window.location.href = "/static/index.html";
+        window.top.location.href = '/login';
       }
     </script>
   </body>

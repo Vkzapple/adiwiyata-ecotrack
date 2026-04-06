@@ -1,7 +1,8 @@
-export default function Admin() {
+"use client";
+export default function AdminPage() {
   return (
-    <iframe
-      src="/static/admin/index.html"
+    <iframe 
+      src="/static/admin/index.html" 
       className="w-full h-screen border-none"
     />
   );

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengawas - Panel Persetujuan Laporan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
+        body { font-family: "Plus Jakarta Sans", sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .sidebar-link.active { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.2); }
+        .sidebar-link.active i { color: white !important; opacity: 1; }
+        .modal-active { display: flex !important; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .skeleton { background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row relative">
+
+    <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20">
+        <div class="p-8 flex items-center space-x-4">
+            <div class="relative">
+                <div class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"></div>
+                <div class="relative w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Panel Pengawas</p>
+            </div>
+        </div>
+        <nav class="mt-4 px-6 space-y-2">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Menu Utama</p>
+            <button onclick="switchTab('menunggu')" id="nav-menunggu" class="sidebar-link active w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 group">
+                <i class="fas fa-clock mr-3 w-5 opacity-70"></i>
+                Menunggu Persetujuan
+                <span id="badge-menunggu" class="ml-auto bg-amber-400 text-white text-[9px] font-black px-2 py-0.5 rounded-full hidden">0</span>
+            </button>
+            <button onclick="switchTab('semua')" id="nav-semua" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
+                <i class="fas fa-list-alt mr-3 w-5 opacity-70"></i> Semua Laporan
+            </button>
+            <button onclick="switchTab('kegiatan')" id="nav-kegiatan" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
+                <i class="fas fa-tasks mr-3 w-5 opacity-70"></i> Data Kegiatan
+            </button>
+            <div class="pt-8">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Akun</p>
+                <button onclick="confirmLogout()" class="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group">
+                    <i class="fas fa-sign-out-alt mr-3 w-5 group-hover:translate-x-1 transition-transform"></i> Keluar Sistem
+                </button>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#f8fafc]">
+
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 fade-up">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" id="pageTitle">Menunggu Persetujuan</h2>
+                <p class="text-slate-500 mt-1">Tinjau dan setujui laporan kegiatan dari Ketua Pokja.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="refreshAll()" class="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-all active:scale-95">
+                    <i class="fas fa-sync-alt text-emerald-500"></i> Refresh
+                </button>
+                <div class="flex items-center space-x-3 bg-white p-3 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <div class="text-right hidden sm:block pl-2">
+                        <p class="text-sm font-black text-slate-900" id="pengawasName">–</p>
+                        <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Pengawas</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-emerald-400 font-black shadow-lg" id="pengawasInitial">?</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stat cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 fade-up">
+            <div class="bg-amber-50 border border-amber-100 p-6 rounded-[2rem] flex items-center gap-4">
+                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-clock"></i></div>
+                <div>
+                    <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Menunggu</p>
+                    <h3 class="text-2xl font-black text-amber-700" id="stat-pending">–</h3>
+                </div>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] flex items-center gap-4">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Disetujui</p>
+                    <h3 class="text-2xl font-black text-emerald-700" id="stat-approved">–</h3>
+                </div>
+            </div>
+            <div class="bg-rose-50 border border-rose-100 p-6 rounded-[2rem] flex items-center gap-4">
+                <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-times-circle"></i></div>
+                <div>
+                    <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Perlu Revisi</p>
+                    <h3 class="text-2xl font-black text-rose-700" id="stat-rejected">–</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB: MENUNGGU ── -->
+        <section id="section-menunggu" class="fade-up space-y-4">
+            <div id="laporanPending" class="space-y-4">
+                <div class="skeleton h-48 w-full"></div>
+                <div class="skeleton h-48 w-full"></div>
+            </div>
+        </section>
+
+        <!-- ── TAB: SEMUA ── -->
+        <section id="section-semua" class="hidden fade-up space-y-4">
+            <div id="laporanSemua" class="space-y-4">
+                <div class="skeleton h-48 w-full"></div>
+            </div>
+        </section>
+
+        <!-- ── TAB: KEGIATAN ── -->
+        <section id="section-kegiatan" class="hidden fade-up space-y-4">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[2px]">
+                                <th class="p-6">Kegiatan</th>
+                                <th class="p-4">Pokja</th>
+                                <th class="p-4">Tanggal</th>
+                                <th class="p-4">Peserta</th>
+                                <th class="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kegiatanTable">
+                            <tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Approve/Reject -->
+    <div id="reviewModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 items-center justify-center p-6">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-xl font-extrabold text-slate-900 flex items-center gap-3">
+                    <i class="fas fa-clipboard-check text-emerald-500"></i>
+                    Tinjau Laporan
+                </h3>
+                <button onclick="closeReviewModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-all">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-8 space-y-5">
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Laporan</p>
+                    <p class="font-extrabold text-slate-900" id="reviewJudul">–</p>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">
+                        Catatan untuk Ketua Pokja (opsional)
+                    </label>
+                    <textarea id="catatanPengawas" rows="3" placeholder="Contoh: Laporan sudah lengkap dan sesuai. / Mohon tambahkan jumlah peserta yang hadir."
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-medium text-sm resize-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="submitReview('rejected')" class="flex-1 py-4 bg-rose-50 hover:bg-rose-100 text-rose-600 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-times-circle"></i> Perlu Revisi
+                    </button>
+                    <button onclick="submitReview('approved')" class="flex-[2] py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-check-circle"></i> Setujui Laporan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center space-x-3 transition-all duration-500 z-50">
+        <i class="fas fa-check-circle text-emerald-400" id="toastIcon"></i>
+        <span id="toastMsg" class="text-sm font-bold"></span>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:3001/api";
+        const AI_URL  = "http://localhost:3001/api/ai";
+        const user    = JSON.parse(localStorage.getItem('user') || '{}');
+        let currentReviewId = null;
+
+        // ── Badge status ──────────────────────────────────────────────────────
+        const statusApprove = {
+            pending : { label: 'Menunggu Persetujuan', style: 'bg-amber-50 text-amber-700 border-amber-200',   icon: 'fas fa-clock'        },
+            approved: { label: 'Disetujui',            style: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: 'fas fa-check-circle' },
+            rejected: { label: 'Perlu Revisi',         style: 'bg-rose-50 text-rose-700 border-rose-200',     icon: 'fas fa-times-circle' },
+        };
+
+        const statusKegiatan = {
+            planned  : { label: 'Belum Terlaksana',    style: 'bg-slate-100 text-slate-500'       },
+            ongoing  : { label: 'Sedang Dilaksanakan', style: 'bg-blue-100 text-blue-600'         },
+            done     : { label: 'Selesai',             style: 'bg-emerald-100 text-emerald-600'   },
+            cancelled: { label: 'Dibatalkan',          style: 'bg-rose-100 text-rose-600'         },
+        };
+
+        // ── Init ──────────────────────────────────────────────────────────────
+
+        function init() {
+            const name    = user.name || "Pengawas";
+            const initial = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('pengawasName').innerText    = name;
+            document.getElementById('pengawasInitial').innerText = initial;
+            loadPendingLaporan();
+            loadStats();
+        }
+
+        // ── Tab Switching ─────────────────────────────────────────────────────
+
+        function switchTab(tab) {
+            ['menunggu','semua','kegiatan'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('active');
+                document.getElementById(`nav-${t}`).classList.add('text-slate-500');
+            });
+            document.getElementById(`section-${tab}`).classList.remove('hidden');
+            document.getElementById(`nav-${tab}`).classList.add('active');
+            document.getElementById(`nav-${tab}`).classList.remove('text-slate-500');
+
+            const titles = {
+                menunggu : 'Menunggu Persetujuan',
+                semua    : 'Semua Laporan',
+                kegiatan : 'Data Kegiatan',
+            };
+            document.getElementById('pageTitle').innerText = titles[tab];
+
+            if (tab === 'menunggu') loadPendingLaporan();
+            if (tab === 'semua')    loadSemuaLaporan();
+            if (tab === 'kegiatan') loadKegiatan();
+        }
+
+        // ── Load Stats ────────────────────────────────────────────────────────
+
+        async function loadStats() {
+            try {
+                const res  = await fetch(`http://localhost:8000/laporan/`);
+                const data = await res.json();
+
+                const pending  = data.filter(l => (l.status_approve || 'pending') === 'pending').length;
+                const approved = data.filter(l => l.status_approve === 'approved').length;
+                const rejected = data.filter(l => l.status_approve === 'rejected').length;
+
+                document.getElementById('stat-pending').innerText  = pending;
+                document.getElementById('stat-approved').innerText = approved;
+                document.getElementById('stat-rejected').innerText = rejected;
+
+                // Badge di sidebar
+                const badge = document.getElementById('badge-menunggu');
+                if (pending > 0) {
+                    badge.innerText = pending;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // ── Load Laporan Pending ──────────────────────────────────────────────
+
+        async function loadPendingLaporan() {
+            const el = document.getElementById('laporanPending');
+            el.innerHTML = '<div class="skeleton h-48 w-full"></div><div class="skeleton h-48 w-full mt-4"></div>';
+            try {
+                const res  = await fetch(`http://localhost:8000/laporan/`);
+                const data = await res.json();
+                const pending = data.filter(l => (l.status_approve || 'pending') === 'pending');
+
+                if (!pending.length) {
+                    el.innerHTML = `
+                        <div class="text-center p-16 border-2 border-dashed border-emerald-100 rounded-[2rem] bg-emerald-50/50">
+                            <i class="fas fa-check-circle text-emerald-400 text-4xl mb-4"></i>
+                            <p class="text-emerald-600 font-extrabold text-lg">Semua laporan sudah ditinjau!</p>
+                            <p class="text-emerald-500 text-sm mt-1">Tidak ada laporan yang menunggu persetujuan.</p>
+                        </div>`;
+                    return;
+                }
+
+                el.innerHTML = pending.map(l => renderLaporanCard(l, true)).join('');
+            } catch(e) {
+                el.innerHTML = '<div class="p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center">Gagal memuat laporan.</div>';
+            }
+        }
+
+        // ── Load Semua Laporan ────────────────────────────────────────────────
+
+        async function loadSemuaLaporan() {
+            const el = document.getElementById('laporanSemua');
+            el.innerHTML = '<div class="skeleton h-48 w-full"></div>';
+            try {
+                const res  = await fetch(`http://localhost:8000/laporan/`);
+                const data = await res.json();
+
+                if (!data.length) {
+                    el.innerHTML = '<div class="text-center p-12 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold">Belum ada laporan.</div>';
+                    return;
+                }
+                el.innerHTML = data.map(l => renderLaporanCard(l, (l.status_approve || 'pending') === 'pending')).join('');
+            } catch(e) {
+                el.innerHTML = '<div class="p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center">Gagal memuat laporan.</div>';
+            }
+        }
+
+        // ── Render Laporan Card ───────────────────────────────────────────────
+
+        function renderLaporanCard(l, showActions) {
+            const approveKey = l.status_approve || 'pending';
+            const ap = statusApprove[approveKey] || statusApprove.pending;
+
+            const catatanHtml = l.catatan_pengawas
+                ? `<div class="mt-4 flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                        <i class="fas fa-comment-dots text-slate-400 mt-0.5"></i>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Catatan Pengawas</p>
+                            <p class="text-sm text-slate-600 font-medium">${l.catatan_pengawas}</p>
+                        </div>
+                   </div>`
+                : '';
+
+            const actionHtml = showActions
+                ? `<div class="flex gap-3 mt-6">
+                        <button onclick="openReviewModal(${l.id}, '${l.judul.replace(/'/g, "\\'")}')"
+                            class="flex-1 py-3 bg-slate-900 hover:bg-emerald-600 text-white font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm">
+                            <i class="fas fa-clipboard-check"></i> Tinjau Laporan
+                        </button>
+                   </div>`
+                : '';
+
+            return `
+                <div class="bg-white rounded-[2rem] border ${approveKey === 'rejected' ? 'border-rose-100' : approveKey === 'approved' ? 'border-emerald-100' : 'border-amber-100'} shadow-xl p-8">
+                    <div class="flex items-start justify-between mb-4 flex-wrap gap-3">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border flex items-center gap-1.5 ${ap.style}">
+                                <i class="${ap.icon}"></i> ${ap.label}
+                            </span>
+                        </div>
+                        <span class="text-xs text-slate-400 font-bold whitespace-nowrap">
+                            ${new Date(l.created_at).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}
+                        </span>
+                    </div>
+                    <h4 class="font-extrabold text-slate-900 text-lg mb-4">${l.judul}</h4>
+                    <div class="bg-slate-50 rounded-2xl p-5 text-sm text-slate-600 leading-relaxed font-medium border border-slate-100 max-h-48 overflow-y-auto whitespace-pre-line">
+                        ${l.konten}
+                    </div>
+                    ${catatanHtml}
+                    ${actionHtml}
+                </div>`;
+        }
+
+        // ── Load Kegiatan ─────────────────────────────────────────────────────
+
+        async function loadKegiatan() {
+            const tbody = document.getElementById('kegiatanTable');
+            tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>';
+            try {
+                const res  = await fetch(`http://localhost:8000/kegiatan/`);
+                const data = await res.json();
+
+                if (!data.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic">Belum ada kegiatan.</td></tr>';
+                    return;
+                }
+
+                // Ambil juga list pokja untuk mapping id → nama
+                const pokjaRes  = await fetch(`${API_URL}/pokja`);
+                const pokjaList = await pokjaRes.json();
+                const pokjaMap  = {};
+                pokjaList.forEach(p => pokjaMap[p.id] = p.nama || p.name);
+
+                tbody.innerHTML = data.map(k => {
+                    const s   = statusKegiatan[k.status] || statusKegiatan.planned;
+                    const tgl = new Date(k.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+                    return `
+                        <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                            <td class="p-6">
+                                <p class="font-bold text-slate-900">${k.judul}</p>
+                                ${k.lokasi ? `<p class="text-xs text-slate-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${k.lokasi}</p>` : ''}
+                            </td>
+                            <td class="p-4">
+                                <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">${pokjaMap[k.pokja_id] || '-'}</span>
+                            </td>
+                            <td class="p-4 text-xs font-bold text-slate-500">${tgl}</td>
+                            <td class="p-4 text-xs font-bold text-slate-700">${k.jumlah_peserta} orang</td>
+                            <td class="p-4">
+                                <span class="text-[9px] font-black px-3 py-1.5 rounded-xl ${s.style}">${s.label}</span>
+                            </td>
+                        </tr>`;
+                }).join('');
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-rose-500 font-bold">Gagal memuat data.</td></tr>';
+            }
+        }
+
+        // ── Review Modal ──────────────────────────────────────────────────────
+
+        function openReviewModal(laporanId, judul) {
+            currentReviewId = laporanId;
+            document.getElementById('reviewJudul').innerText = judul;
+            document.getElementById('catatanPengawas').value = '';
+            document.getElementById('reviewModal').classList.add('modal-active');
+            document.getElementById('reviewModal').classList.remove('hidden');
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('modal-active');
+            document.getElementById('reviewModal').classList.add('hidden');
+            currentReviewId = null;
+        }
+
+        async function submitReview(action) {
+            if (!currentReviewId) return;
+            const catatan = document.getElementById('catatanPengawas').value.trim();
+
+            try {
+                const res = await fetch(`${API_URL}/laporan/${currentReviewId}/review`, {
+                    method : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body   : JSON.stringify({
+                        status_approve    : action,
+                        catatan_pengawas  : catatan || null,
+                        approved_by       : user.id,
+                    })
+                });
+
+                if (res.ok) {
+                    showToast(action === 'approved' ? 'Laporan berhasil disetujui!' : 'Laporan dikembalikan untuk revisi.');
+                    closeReviewModal();
+                    loadPendingLaporan();
+                    loadStats();
+                } else {
+                    const err = await res.json();
+                    showToast(err.message || 'Gagal memproses.', 'error');
+                }
+            } catch(e) {
+                showToast('Gagal terhubung ke server.', 'error');
+            }
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+
+        function refreshAll() {
+            loadStats();
+            const active = ['menunggu','semua','kegiatan'].find(t =>
+                !document.getElementById(`section-${t}`).classList.contains('hidden')
+            );
+            if (active === 'menunggu') loadPendingLaporan();
+            if (active === 'semua')    loadSemuaLaporan();
+            if (active === 'kegiatan') loadKegiatan();
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            document.getElementById('toastMsg').innerText = msg;
+            icon.className = type === 'error' ? 'fas fa-times-circle text-rose-400' : 'fas fa-check-circle text-emerald-400';
+            toast.classList.remove('translate-y-20','opacity-0');
+            toast.classList.add('translate-y-0','opacity-100');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20','opacity-0');
+                toast.classList.remove('translate-y-0','opacity-100');
+            }, 3500);
+        }
+
+        function confirmLogout() {
+            if (confirm('Keluar dari sistem?')) {
+                localStorage.removeItem('user');
+                window.top.location.href = '/login';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

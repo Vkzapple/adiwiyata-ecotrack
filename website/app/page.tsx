@@ -1,6 +1,8 @@
-import { redirect } from "next/navigation";
+"use client";
 
 export default function Home() {
-  redirect("/dashboard");
-
+  if (typeof window !== "undefined") {
+    window.top!.location.href = "/dashboard";
+  }
+  return null;
 }

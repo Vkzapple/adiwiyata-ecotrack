@@ -196,25 +196,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
 
-            if (response.ok) {
-                // Simpan data user ke localStorage
-                localStorage.setItem('user', JSON.stringify(data.user));
+if (response.ok) {
+    // Simpan data user ke localStorage
+    localStorage.setItem('user', JSON.stringify(data.user));
 
-                showToast('Login berhasil! Mengalihkan...', 'success');
+    showToast('Login berhasil! Mengalihkan...', 'success');
 
-                // Redirect berdasarkan role
-                setTimeout(() => {
-                    if (data.user.role === 'admin') {
-                        window.location.href = '/static/admin/index.html';
-                    } else if (data.user.role === 'ketua') {
-                        window.location.href = '/static/ketua/index.html';
-                    } else {
-                        window.location.href = '/static/dashboard/index.html';
-                    }
-                }, 1500);
-            } else {
-                showToast(data.message || 'Login gagal', 'error');
-            }
+    // Redirect berdasarkan role
+    setTimeout(() => {
+        if (data.user.role === 'admin') {
+            window.top.location.href = '/admin';
+        } else if (data.user.role === 'Ketua Pokja' || data.user.role === 'ketua') {
+            window.top.location.href = '/ketua';
+        } else if (data.user.role === 'Pengawas') {
+            window.top.location.href = '/pengawas';
+        } else {
+            window.top.location.href = '/dashboard';
+        }
+    }, 1500);
+
+} else {
+    showToast(data.message || 'Login gagal', 'error');
+}
 
         } catch (err) {
             showToast('Tidak dapat terhubung ke server', 'error');

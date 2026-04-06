@@ -24,7 +24,6 @@
 </head>
 <body class="min-h-screen flex flex-col md:flex-row relative">
 
-    <!-- Sidebar -->
     <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20">
         <div class="p-8 flex items-center space-x-4">
             <div class="relative">
@@ -62,11 +61,10 @@
 
     <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#f8fafc]">
 
-        <!-- Header -->
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 fade-up">
             <div>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" id="pageTitle">Manajemen Kegiatan</h2>
-                <p class="text-slate-500 mt-1" id="pageSubtitle">Input, edit, dan dokumentasikan hasil kerja Pokja Anda.</p>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Manajemen Kegiatan</h2>
+                <p class="text-slate-500 mt-1">Input dan dokumentasikan hasil kerja Pokja Anda.</p>
             </div>
             <div class="flex items-center space-x-4 bg-white p-3 rounded-[2rem] border border-slate-100 shadow-sm">
                 <div class="text-right hidden sm:block pl-4">
@@ -116,9 +114,23 @@
         <!-- ── TAB: LAPORAN ── -->
         <section id="section-laporan" class="hidden fade-up space-y-6">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-extrabold text-slate-900">Laporan Kegiatan (Auto-Generated)</h3>
+                <h3 class="text-xl font-extrabold text-slate-900">Laporan Kegiatan</h3>
                 <span class="text-xs text-slate-400 font-bold bg-slate-100 px-4 py-2 rounded-xl">Dibuat otomatis oleh AI</span>
             </div>
+
+            <!-- Legend status approve -->
+            <div class="flex flex-wrap gap-3">
+                <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> MENUNGGU PERSETUJUAN
+                </span>
+                <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> DISETUJUI
+                </span>
+                <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> PERLU REVISI
+                </span>
+            </div>
+
             <div id="laporanList" class="space-y-4">
                 <div class="skeleton h-32 w-full"></div>
                 <div class="skeleton h-32 w-full"></div>
@@ -147,7 +159,6 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-
             <form class="p-8 space-y-5" id="activityForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="col-span-2">
@@ -183,8 +194,6 @@
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Hasil Kegiatan (opsional)</label>
                         <input type="text" id="activityHasil" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="30 bibit berhasil ditanam, dll">
                     </div>
-
-                    <!-- Toggle generate laporan -->
                     <div class="col-span-2 flex items-center space-x-3 bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
                         <input type="checkbox" id="generateLaporan" checked class="w-5 h-5 accent-emerald-600">
                         <label for="generateLaporan" class="text-sm font-bold text-emerald-700 cursor-pointer">
@@ -192,7 +201,6 @@
                         </label>
                     </div>
                 </div>
-
                 <div class="flex space-x-4 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black py-4 rounded-2xl transition-all">BATAL</button>
                     <button type="submit" id="submitBtn" class="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-100 transition-all active:scale-95">
@@ -212,15 +220,40 @@
     <script>
         const API_URL = "http://localhost:3001/api";
         const AI_URL  = "http://localhost:3001/api/ai";
-
-        // Ambil user dari localStorage (set saat login)
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const user    = JSON.parse(localStorage.getItem('user') || '{}');
         let currentPokjaId = null;
+
+        // ── Badge helpers ─────────────────────────────────────────────────────
+
+        const statusKegiatan = {
+            planned  : { label: 'Belum Terlaksana',    style: 'bg-slate-50 text-slate-500 border-slate-100'       },
+            ongoing  : { label: 'Sedang Dilaksanakan', style: 'bg-blue-50 text-blue-600 border-blue-100'          },
+            done     : { label: 'Selesai',             style: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+            cancelled: { label: 'Dibatalkan',          style: 'bg-rose-50 text-rose-600 border-rose-100'          },
+        };
+
+        // Badge status persetujuan laporan (Bahasa Indonesia)
+        const statusApprove = {
+            pending : {
+                label: 'Menunggu Persetujuan',
+                style: 'bg-amber-50 text-amber-700 border-amber-200',
+                icon : 'fas fa-clock'
+            },
+            approved: {
+                label: 'Disetujui',
+                style: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                icon : 'fas fa-check-circle'
+            },
+            rejected: {
+                label: 'Perlu Revisi',
+                style: 'bg-rose-50 text-rose-700 border-rose-200',
+                icon : 'fas fa-times-circle'
+            },
+        };
 
         // ── Init ──────────────────────────────────────────────────────────────
 
         async function init() {
-            // Tampilkan info user
             const name    = user.name  || "Ketua Pokja";
             const pokja   = user.pokja || "–";
             const initial = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
@@ -229,20 +262,29 @@
             document.getElementById('currentPokjaName').innerText  = "Ketua " + pokja;
             document.getElementById('userInitial').innerText       = initial;
 
-            // Cari pokja_id berdasarkan nama pokja user
             await loadPokjaId(pokja);
             loadKegiatan();
         }
 
         async function loadPokjaId(namaPokja) {
             try {
-                const res   = await fetch(`${API_URL}/pokja`);
-                const list  = await res.json();
-                // Cari pokja yang namanya cocok (case-insensitive)
-                const found = list.find(p =>
+                const res  = await fetch(`${API_URL}/pokja`);
+                const list = await res.json();
+
+                let found = list.find(p =>
                     (p.nama || p.name || '').toLowerCase() === namaPokja.toLowerCase()
                 );
-                if (found) currentPokjaId = found.id;
+                if (!found) {
+                    found = list.find(p =>
+                        (p.nama || p.name || '').toLowerCase().includes(namaPokja.toLowerCase())
+                        || namaPokja.toLowerCase().includes((p.nama || p.name || '').toLowerCase())
+                    );
+                }
+                if (found) {
+                    currentPokjaId = found.id;
+                } else {
+                    console.warn('Pokja tidak ditemukan:', namaPokja);
+                }
             } catch(e) { console.error(e); }
         }
 
@@ -268,16 +310,9 @@
         async function loadKegiatan() {
             const tbody = document.getElementById('leaderActivityTable');
             tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>';
-
             try {
-                const url = currentPokjaId
-                    ? `${AI_URL.replace('/ai','')}/kegiatan/?pokja_id=${currentPokjaId}&limit=50`
-                    : `${AI_URL.replace('/ai','')}/kegiatan/?limit=50`;
-
-                // Gunakan Python AI endpoint langsung
                 const res  = await fetch(`http://localhost:8000/kegiatan/${currentPokjaId ? '?pokja_id='+currentPokjaId : ''}`);
                 const data = await res.json();
-
                 document.getElementById('activityCount').innerText = data.length;
 
                 if (!data.length) {
@@ -285,15 +320,8 @@
                     return;
                 }
 
-                const statusMap = {
-                    planned  : { label: 'Belum Terlaksana',      style: 'bg-slate-50 text-slate-500 border-slate-100'    },
-                    ongoing  : { label: 'Sedang Dilaksanakan',   style: 'bg-blue-50 text-blue-600 border-blue-100'       },
-                    done     : { label: 'Selesai',               style: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-                    cancelled: { label: 'Dibatalkan',            style: 'bg-rose-50 text-rose-600 border-rose-100'       },
-                };
-
                 tbody.innerHTML = data.map(k => {
-                    const s   = statusMap[k.status] || statusMap.planned;
+                    const s   = statusKegiatan[k.status] || statusKegiatan.planned;
                     const tgl = new Date(k.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
                     return `
                         <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
@@ -308,7 +336,7 @@
                             </td>
                             <td class="p-8 text-right">
                                 <div class="flex justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-all">
-                                    <button onclick="generateLaporanSingle(${k.id}, '${k.judul}')" title="Generate Laporan" class="w-9 h-9 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
+                                    <button onclick="generateLaporanSingle(${k.id})" title="Generate Laporan" class="w-9 h-9 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
                                         <i class="fas fa-robot text-xs"></i>
                                     </button>
                                     <button onclick="deleteKegiatan(${k.id})" title="Hapus" class="w-9 h-9 flex items-center justify-center bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
@@ -323,7 +351,7 @@
             }
         }
 
-        // ── Load Laporan ──────────────────────────────────────────────────────
+        // ── Load Laporan (dengan badge status approve) ─────────────────────────
 
         async function loadLaporan() {
             const el = document.getElementById('laporanList');
@@ -340,24 +368,45 @@
                     return;
                 }
 
-                el.innerHTML = data.map(l => `
-                    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8">
-                        <div class="flex items-start justify-between mb-4">
-                            <div>
-                                <span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
-                                    <i class="fas fa-robot mr-1"></i> Auto-Generated
+                el.innerHTML = data.map(l => {
+                    // Status approve — default pending kalau belum ada kolom
+                    const approveKey = l.status_approve || 'pending';
+                    const ap = statusApprove[approveKey] || statusApprove.pending;
+
+                    // Catatan pengawas (kalau ada)
+                    const catatanHtml = l.catatan_pengawas
+                        ? `<div class="mt-4 flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                                <i class="fas fa-comment-dots text-amber-500 mt-0.5"></i>
+                                <div>
+                                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Catatan Pengawas</p>
+                                    <p class="text-sm text-amber-800 font-medium">${l.catatan_pengawas}</p>
+                                </div>
+                           </div>`
+                        : '';
+
+                    return `
+                        <div class="bg-white rounded-[2rem] border ${approveKey === 'rejected' ? 'border-rose-200' : approveKey === 'approved' ? 'border-emerald-100' : 'border-slate-100'} shadow-xl p-8">
+                            <div class="flex items-start justify-between mb-4 flex-wrap gap-3">
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    <span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
+                                        <i class="fas fa-robot mr-1"></i> Auto-Generated
+                                    </span>
+                                    <!-- Badge Status Persetujuan -->
+                                    <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border flex items-center gap-1.5 ${ap.style}">
+                                        <i class="${ap.icon}"></i> ${ap.label}
+                                    </span>
+                                </div>
+                                <span class="text-xs text-slate-400 font-bold whitespace-nowrap">
+                                    ${new Date(l.created_at).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}
                                 </span>
-                                <h4 class="font-extrabold text-slate-900 text-lg mt-3">${l.judul}</h4>
                             </div>
-                            <span class="text-xs text-slate-400 font-bold whitespace-nowrap ml-4">
-                                ${new Date(l.created_at).toLocaleDateString('id-ID')}
-                            </span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-6 text-sm text-slate-600 leading-relaxed whitespace-pre-line font-medium border border-slate-100">
-                            ${l.konten}
-                        </div>
-                    </div>
-                `).join('');
+                            <h4 class="font-extrabold text-slate-900 text-lg mb-4">${l.judul}</h4>
+                            <div class="bg-slate-50 rounded-2xl p-6 text-sm text-slate-600 leading-relaxed whitespace-pre-line font-medium border border-slate-100">
+                                ${l.konten}
+                            </div>
+                            ${catatanHtml}
+                        </div>`;
+                }).join('');
             } catch(e) {
                 el.innerHTML = '<div class="p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center">Gagal memuat laporan.</div>';
             }
@@ -368,7 +417,7 @@
         async function loadInsight() {
             const el = document.getElementById('insightContent');
             if (!currentPokjaId) {
-                el.innerHTML = '<div class="p-8 bg-amber-50 text-amber-700 rounded-2xl font-bold text-center">Pokja tidak ditemukan di sistem AI. Pastikan nama pokja cocok.</div>';
+                el.innerHTML = '<div class="p-8 bg-amber-50 text-amber-700 rounded-2xl font-bold text-center">Pokja tidak ditemukan di sistem AI.</div>';
                 return;
             }
             el.innerHTML = '<div class="skeleton h-48 w-full"></div>';
@@ -398,14 +447,12 @@
                                 <p class="text-xs font-black px-3 py-1 rounded-xl border mt-2 inline-block ${lc}">${data.label}</p>
                             </div>
                         </div>
-
                         <div class="w-full bg-slate-100 rounded-full h-4">
                             <div class="h-4 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000" style="width:${data.skor}%"></div>
                         </div>
-
                         <div class="bg-slate-900 rounded-2xl p-6">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                                <i class="fas fa-robot mr-2 text-emerald-400"></i>AI Analysis
+                                <i class="fas fa-robot mr-2 text-emerald-400"></i>Analisis AI
                             </p>
                             ${data.insights.map(ins =>
                                 `<p class="text-sm text-slate-200 font-medium leading-relaxed">${ins}</p>`
@@ -468,33 +515,32 @@
                         status         : status,
                     })
                 });
-
                 if (!resK.ok) throw new Error('Gagal simpan kegiatan');
                 const kegiatan = await resK.json();
 
-                // 2. Auto-generate laporan jika dicentang
                 if (doGenerate) {
-                    const pokjaName = user.pokja || 'Pokja';
-                    await fetch('http://localhost:8000/laporan/generate', {
+                    const resL = await fetch('http://localhost:8000/laporan/generate', {
                         method : 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body   : JSON.stringify({
-                            kegiatan_id        : kegiatan.id,
-                            nama_kegiatan      : nama,
-                            tanggal            : tanggal + 'T08:00:00',
-                            peserta            : peserta,
-                            lokasi             : lokasi || null,
-                            kendala            : kendala || null,
-                            hasil              : hasil || null,
-                            nama_pokja         : pokjaName,
+                            kegiatan_id   : kegiatan.id,
+                            nama_kegiatan : nama,
+                            tanggal       : tanggal + 'T08:00:00',
+                            peserta       : peserta,
+                            lokasi        : lokasi || null,
+                            kendala       : kendala || null,
+                            hasil         : hasil || null,
+                            nama_pokja    : user.pokja || 'Pokja',
                         })
                     });
+                    if (!resL.ok) {
+                        const err = await resL.json();
+                        if (!err.detail?.includes('sudah ada')) console.warn(err.detail);
+                    }
                 }
 
-                // 3. Recalculate skor AI
                 await fetch(`${AI_URL}/recalculate`, { method: 'POST' });
-
-                showToast(doGenerate ? 'Kegiatan & laporan berhasil disimpan!' : 'Kegiatan berhasil disimpan!');
+                showToast(doGenerate ? 'Kegiatan & laporan berhasil disimpan! Menunggu persetujuan pengawas.' : 'Kegiatan berhasil disimpan!');
                 closeModal();
                 loadKegiatan();
 
@@ -506,34 +552,40 @@
             }
         };
 
-        async function generateLaporanSingle(kegiatanId, judul) {
+        async function generateLaporanSingle(kegiatanId) {
             showToast('Membuat laporan...', 'info');
             try {
-                const resK  = await fetch(`http://localhost:8000/kegiatan/${kegiatanId}`);
-                const k     = await resK.json();
-                const pokjaName = user.pokja || 'Pokja';
+                const resK = await fetch(`http://localhost:8000/kegiatan/${kegiatanId}`);
+                if (!resK.ok) { showToast('Kegiatan tidak ditemukan.', 'error'); return; }
+                const k = await resK.json();
 
                 const res = await fetch('http://localhost:8000/laporan/generate', {
                     method : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body   : JSON.stringify({
-                        kegiatan_id   : kegiatanId,
+                        kegiatan_id   : k.id,
                         nama_kegiatan : k.judul,
                         tanggal       : k.tanggal,
                         peserta       : k.jumlah_peserta,
-                        lokasi        : k.lokasi,
-                        kendala       : k.kendala,
-                        hasil         : k.hasil,
-                        nama_pokja    : pokjaName,
+                        lokasi        : k.lokasi  || null,
+                        kendala       : k.kendala || null,
+                        hasil         : k.hasil   || null,
+                        nama_pokja    : user.pokja || 'Pokja',
                     })
                 });
-                if (res.ok) { showToast('Laporan berhasil di-generate!'); }
-                else {
+
+                if (res.ok) {
+                    showToast('Laporan berhasil dibuat! Menunggu persetujuan pengawas.');
+                } else {
                     const err = await res.json();
-                    showToast(err.detail || 'Laporan sudah ada.', 'error');
+                    showToast(err.detail?.includes('sudah ada')
+                        ? 'Laporan sudah ada — cek tab Laporan Kegiatan.'
+                        : (err.detail || 'Gagal generate laporan.'),
+                        err.detail?.includes('sudah ada') ? 'info' : 'error'
+                    );
                 }
             } catch(e) {
-                showToast('Gagal generate laporan.', 'error');
+                showToast('Gagal terhubung ke server AI.', 'error');
             }
         }
 
@@ -546,17 +598,13 @@
             } catch(e) { showToast('Gagal menghapus.', 'error'); }
         }
 
-        // ── Toast ─────────────────────────────────────────────────────────────
-
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const icon  = document.getElementById('toastIcon');
             document.getElementById('toastMsg').innerText = msg;
-            icon.className = type === 'error'
-                ? 'fas fa-times-circle text-rose-400'
-                : type === 'info'
-                ? 'fas fa-circle-notch fa-spin text-blue-400'
-                : 'fas fa-check-circle text-emerald-400';
+            icon.className = type === 'error'   ? 'fas fa-times-circle text-rose-400'
+                           : type === 'info'    ? 'fas fa-circle-notch fa-spin text-blue-400'
+                           : 'fas fa-check-circle text-emerald-400';
             toast.classList.remove('translate-y-20','opacity-0');
             toast.classList.add('translate-y-0','opacity-100');
             setTimeout(() => {
@@ -568,7 +616,7 @@
         function confirmLogout() {
             if (confirm('Keluar dari sistem?')) {
                 localStorage.removeItem('user');
-                window.location.href = '/static/login/index.html';
+                window.top.location.href = '/login';
             }
         }
 

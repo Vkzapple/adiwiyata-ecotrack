@@ -153,12 +153,9 @@ class SkorPokja(Base):
 
 # ─── DB Setup ─────────────────────────────────────────────────────────────────
 
-DATABASE_URL = ""
+DATABASE_URL = "mysql+pymysql://root:@127.0.0.1/adiwiyata"
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

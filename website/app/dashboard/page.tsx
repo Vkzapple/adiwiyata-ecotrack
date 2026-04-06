@@ -1,7 +1,8 @@
-export default function Dashboard() {
+"use client";
+export default function DashboardPage() {
   return (
-    <iframe
-      src="/static/dashboard/index.html"
+    <iframe 
+      src="/static/dashboard/index.html" 
       className="w-full h-screen border-none"
     />
   );
