@@ -140,7 +140,7 @@ async function testDbConnection() {
         if (conn) conn.release();
     }
 }
-const AI_URL = "http://127.0.0.1:8000";
+const AI_URL = "http://10.230.7.119:8000";
 // Helper function
 async function fetchAI(path, options = {}) {
     const response = await fetch(`${AI_URL}${path}`, options);
