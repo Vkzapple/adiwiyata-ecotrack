@@ -20,229 +20,336 @@
         input:focus, select:focus, textarea:focus { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,0.1); }
         .skeleton { background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Sidebar mobile */
+        #sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 100%;
+            width: 280px;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 40;
+        }
+        #sidebar.open { transform: translateX(0); }
+
+        /* Desktop sidebar */
+        @media (min-width: 768px) {
+            #sidebar {
+                position: sticky;
+                top: 0;
+                transform: translateX(0);
+                width: 288px;
+                height: 100vh;
+            }
+            #sidebarOverlay { display: none !important; }
+            #mobileTopbar { display: none !important; }
+        }
+
+        /* Overlay */
+        #sidebarOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.45);
+            backdrop-filter: blur(2px);
+            z-index: 30;
+        }
+        #sidebarOverlay.open { display: block; }
+
+        /* Mobile topbar */
+        #mobileTopbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        /* Modal scroll fix */
+        .modal-scroll-area {
+            max-height: calc(100vh - 2rem);
+            overflow-y: auto;
+        }
+
+        /* Popup confirm style */
+        .popup-confirm { animation: popIn 0.2s ease-out; }
+        @keyframes popIn { from { opacity:0; transform: scale(0.92); } to { opacity:1; transform: scale(1); } }
+
+        /* Table responsive */
+        @media (max-width: 640px) {
+            .hide-mobile { display: none; }
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row relative">
+<body class="min-h-screen bg-[#f8fafc]">
 
-    <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20">
-        <div class="p-8 flex items-center space-x-4">
-            <div class="relative">
-                <div class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"></div>
-                <div class="relative w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                </div>
+    <!-- ───── SIDEBAR OVERLAY (mobile) ───── -->
+    <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- ───── MOBILE TOPBAR ───── -->
+    <header id="mobileTopbar" class="bg-white border-b border-slate-100 shadow-sm flex items-center gap-3 px-4 py-3">
+        <button onclick="openSidebar()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all flex-shrink-0">
+            <i class="fas fa-bars text-sm"></i>
+        </button>
+        <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md shadow-emerald-200 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
             </div>
             <div>
-                <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pokja Panel</p>
+                <h1 class="font-extrabold text-base tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Pokja Panel</p>
             </div>
         </div>
-        <nav class="mt-4 px-6 space-y-2">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Menu Utama</p>
-            <button onclick="switchTab('kegiatan')" id="nav-kegiatan" class="sidebar-link active w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 group">
-                <i class="fas fa-tasks mr-3 w-5 opacity-70"></i> Kelola Kegiatan
-            </button>
-            <button onclick="switchTab('laporan')" id="nav-laporan" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
-                <i class="fas fa-file-alt mr-3 w-5 opacity-70"></i> Laporan Kegiatan
-            </button>
-            <button onclick="switchTab('insight')" id="nav-insight" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
-                <i class="fas fa-robot mr-3 w-5 opacity-70"></i> AI Insight Pokja
-            </button>
-            <div class="pt-8">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Akun</p>
+    </header>
+
+    <!-- ───── WRAPPER ───── -->
+    <div class="flex min-h-screen">
+
+        <!-- ───── SIDEBAR ───── -->
+        <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col shadow-2xl md:shadow-none">
+            <!-- Header Sidebar -->
+            <div class="p-6 md:p-8 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"></div>
+                        <div class="relative w-11 h-11 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Pokja Panel</p>
+                    </div>
+                </div>
+                <!-- Close button mobile -->
+                <button onclick="closeSidebar()" class="md:hidden w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <!-- User info (sidebar) -->
+            <div class="mx-4 mb-2 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-emerald-400 font-black text-sm flex-shrink-0" id="userInitial">?</div>
+                <div class="min-w-0">
+                    <p class="text-sm font-black text-slate-900 truncate" id="currentLeaderName">–</p>
+                    <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider" id="currentPokjaName">Memuat...</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="mt-4 px-4 space-y-1 flex-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-3 px-3">Menu Utama</p>
+                <button onclick="switchTab('kegiatan'); closeSidebar();" id="nav-kegiatan" class="sidebar-link active w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 group">
+                    <i class="fas fa-tasks mr-3 w-5 opacity-70"></i> Kelola Kegiatan
+                </button>
+                <button onclick="switchTab('laporan'); closeSidebar();" id="nav-laporan" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
+                    <i class="fas fa-file-alt mr-3 w-5 opacity-70"></i> Laporan Kegiatan
+                </button>
+                <button onclick="switchTab('insight'); closeSidebar();" id="nav-insight" class="sidebar-link w-full flex items-center px-4 py-3.5 text-sm font-semibold text-slate-500 rounded-2xl transition-all duration-300 hover:bg-slate-50 group">
+                    <i class="fas fa-robot mr-3 w-5 opacity-70"></i> AI Insight Pokja
+                </button>
+            </nav>
+
+            <!-- Keluar -->
+            <div class="px-4 pb-6 pt-2 border-t border-slate-100 mt-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-3 px-3 mt-3">Akun</p>
                 <button onclick="confirmLogout()" class="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group">
                     <i class="fas fa-sign-out-alt mr-3 w-5 group-hover:translate-x-1 transition-transform"></i> Keluar Sistem
                 </button>
             </div>
-        </nav>
-    </aside>
+        </aside>
 
-    <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#f8fafc]">
+        <!-- ───── MAIN CONTENT ───── -->
+        <main class="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto bg-[#f8fafc] min-w-0">
 
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 fade-up">
-            <div>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Manajemen Kegiatan</h2>
-                <p class="text-slate-500 mt-1">Input dan dokumentasikan hasil kerja Pokja Anda.</p>
-            </div>
-            <div class="flex items-center space-x-4 bg-white p-3 rounded-[2rem] border border-slate-100 shadow-sm">
-                <div class="text-right hidden sm:block pl-4">
-                    <p class="text-sm font-black text-slate-900" id="currentLeaderName">–</p>
-                    <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider" id="currentPokjaName">Memuat...</p>
+            <header class="mb-8 fade-up">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Manajemen Kegiatan</h2>
+                <p class="text-slate-500 mt-1 text-sm">Input dan dokumentasikan hasil kerja Pokja Anda.</p>
+            </header>
+
+            <!-- ── TAB: KEGIATAN ── -->
+            <section id="section-kegiatan" class="fade-up">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-white p-5 rounded-[1.75rem] border border-slate-100 shadow-xl flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"><i class="fas fa-file-alt"></i></div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Kegiatan</p>
+                            <h3 class="text-2xl font-black text-slate-900" id="activityCount">–</h3>
+                        </div>
+                    </div>
+                    <button onclick="openAddModal()" class="sm:col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[1.75rem] font-bold flex items-center justify-center space-x-3 shadow-xl shadow-emerald-200 transition-all active:scale-95 group py-4 sm:py-0">
+                        <i class="fas fa-plus-circle text-xl group-hover:rotate-90 transition-transform duration-300"></i>
+                        <span class="text-base sm:text-lg">Input Kegiatan Baru</span>
+                    </button>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-emerald-400 font-black shadow-lg" id="userInitial">?</div>
-            </div>
-        </header>
 
-        <!-- ── TAB: KEGIATAN ── -->
-        <section id="section-kegiatan" class="fade-up">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl flex items-center space-x-4">
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-file-alt"></i></div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Kegiatan</p>
-                        <h3 class="text-2xl font-black text-slate-900" id="activityCount">–</h3>
+                <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left min-w-[520px]">
+                            <thead>
+                                <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[2px]">
+                                    <th class="px-6 py-5">Kegiatan</th>
+                                    <th class="px-4 py-5 hide-mobile">Tanggal</th>
+                                    <th class="px-4 py-5 hide-mobile">Peserta</th>
+                                    <th class="px-4 py-5">Status</th>
+                                    <th class="text-right px-6 py-5">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderActivityTable" class="text-sm text-slate-600">
+                                <tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <button onclick="openAddModal()" class="md:col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] font-bold flex items-center justify-center space-x-3 shadow-xl shadow-emerald-200 transition-all active:scale-95 group py-4">
-                    <i class="fas fa-plus-circle text-xl group-hover:rotate-90 transition-transform duration-300"></i>
-                    <span class="text-lg">Input Kegiatan Baru</span>
-                </button>
-            </div>
+            </section>
 
-            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[2px]">
-                                <th class="p-8">Kegiatan</th>
-                                <th class="p-4">Tanggal</th>
-                                <th class="p-4">Peserta</th>
-                                <th class="p-4">Status</th>
-                                <th class="text-right p-8">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderActivityTable" class="text-sm text-slate-600">
-                            <tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>
-                        </tbody>
-                    </table>
+            <!-- ── TAB: LAPORAN ── -->
+            <section id="section-laporan" class="hidden fade-up space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h3 class="text-xl font-extrabold text-slate-900">Laporan Kegiatan</h3>
+                    <span class="text-xs text-slate-400 font-bold bg-slate-100 px-4 py-2 rounded-xl">Dibuat otomatis oleh AI</span>
                 </div>
-            </div>
-        </section>
+                <div class="flex flex-wrap gap-2">
+                    <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-amber-400"></span> MENUNGGU PERSETUJUAN
+                    </span>
+                    <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> DISETUJUI
+                    </span>
+                    <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> PERLU REVISI
+                    </span>
+                </div>
+                <div id="laporanList" class="space-y-4">
+                    <div class="skeleton h-32 w-full"></div>
+                    <div class="skeleton h-32 w-full"></div>
+                </div>
+            </section>
 
-        <!-- ── TAB: LAPORAN ── -->
-        <section id="section-laporan" class="hidden fade-up space-y-6">
-            <div class="flex items-center justify-between">
-                <h3 class="text-xl font-extrabold text-slate-900">Laporan Kegiatan</h3>
-                <span class="text-xs text-slate-400 font-bold bg-slate-100 px-4 py-2 rounded-xl">Dibuat otomatis oleh AI</span>
-            </div>
+            <!-- ── TAB: AI INSIGHT ── -->
+            <section id="section-insight" class="hidden fade-up space-y-6">
+                <h3 class="text-xl font-extrabold text-slate-900">AI Insight — Pokja Kamu</h3>
+                <div id="insightContent">
+                    <div class="skeleton h-48 w-full"></div>
+                </div>
+            </section>
 
-            <!-- Legend status approve -->
-            <div class="flex flex-wrap gap-3">
-                <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> MENUNGGU PERSETUJUAN
-                </span>
-                <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> DISETUJUI
-                </span>
-                <span class="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> PERLU REVISI
-                </span>
-            </div>
+        </main>
+    </div>
 
-            <div id="laporanList" class="space-y-4">
-                <div class="skeleton h-32 w-full"></div>
-                <div class="skeleton h-32 w-full"></div>
-            </div>
-        </section>
-
-        <!-- ── TAB: AI INSIGHT ── -->
-        <section id="section-insight" class="hidden fade-up space-y-6">
-            <h3 class="text-xl font-extrabold text-slate-900">AI Insight — Pokja Kamu</h3>
-            <div id="insightContent">
-                <div class="skeleton h-48 w-full"></div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Modal Input Kegiatan -->
-    <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 items-center justify-center p-6 overflow-y-auto">
-        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl my-8 overflow-hidden">
-            <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                <h3 class="text-xl font-extrabold text-slate-900 flex items-center">
-                    <i class="fas fa-clipboard-list mr-3 text-emerald-500"></i>
+    <!-- ═══════════════════════════════════════════════════════════
+         MODAL INPUT KEGIATAN — RESPONSIVE & TIDAK MENTOK LAYAR
+    ════════════════════════════════════════════════════════════════ -->
+    <div id="activityModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-start justify-center overflow-y-auto p-3 sm:p-6">
+        <div class="bg-white w-full max-w-2xl rounded-[1.75rem] shadow-2xl my-3 sm:my-8 overflow-hidden">
+            <!-- Header Modal -->
+            <div class="px-5 sm:px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/70 sticky top-0 z-10">
+                <h3 class="text-base sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                        <i class="fas fa-clipboard-list text-sm"></i>
+                    </span>
                     <span id="modalTitle">Input Kegiatan Baru</span>
                 </h3>
-                <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-all">
+                <button onclick="closeModal()" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-all flex-shrink-0">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form class="p-8 space-y-5" id="activityForm">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div class="col-span-2">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Nama Kegiatan</label>
-                        <input type="text" id="activityName" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="Contoh: Penanaman Pohon Perindang">
+
+            <!-- Form Modal -->
+            <form class="px-5 sm:px-8 py-6 space-y-4" id="activityForm">
+                <!-- Nama Kegiatan -->
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Nama Kegiatan</label>
+                    <input type="text" id="activityName" required class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" placeholder="Contoh: Penanaman Pohon Perindang">
+                </div>
+
+                <!-- Grid 2 kolom -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Tanggal</label>
+                        <input type="date" id="activityDate" required class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Tanggal</label>
-                        <input type="date" id="activityDate" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Jumlah Peserta</label>
+                        <input type="number" id="activityPeserta" min="0" required class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" placeholder="25">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Jumlah Peserta</label>
-                        <input type="number" id="activityPeserta" min="0" required class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="25">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Lokasi</label>
+                        <input type="text" id="activityLokasi" class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" placeholder="Taman Sekolah">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Lokasi</label>
-                        <input type="text" id="activityLokasi" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="Taman Sekolah">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Status</label>
-                        <select id="activityStatus" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-bold text-slate-700">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Status</label>
+                        <select id="activityStatus" class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-bold text-slate-700 text-sm">
                             <option value="planned">Belum Terlaksana</option>
                             <option value="ongoing">Sedang Dilaksanakan</option>
                             <option value="done">Selesai</option>
                             <option value="cancelled">Dibatalkan</option>
                         </select>
                     </div>
-                    <div class="col-span-2">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Kendala (opsional)</label>
-                        <input type="text" id="activityKendala" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="Alat cangkul kurang, cuaca hujan, dll">
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Hasil Kegiatan (opsional)</label>
-                        <input type="text" id="activityHasil" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all font-semibold" placeholder="30 bibit berhasil ditanam, dll">
-                    </div>
-                     
-<div class="col-span-2">
-    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">
-        Dokumentasi Foto
-    </label>
-    
-    <!-- Tombol aksi dokumentasi -->
-    <div class="flex gap-3 mb-3">
-        <button type="button" onclick="openCamera()"
-            class="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl transition-all active:scale-95 text-sm">
-            <i class="fas fa-camera text-lg"></i>
-            Buka Kamera
-        </button>
-        <label class="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all active:scale-95 text-sm cursor-pointer">
-            <i class="fas fa-image"></i>
-            Upload Foto
-            <input type="file" id="uploadFotoInput" accept="image/*" multiple class="hidden" onchange="handleUploadFoto(this)">
-        </label>
-    </div>
- 
-    <!-- Preview foto yang sudah diambil/upload -->
-    <div id="fotoPreviewContainer" class="hidden">
-        <div class="flex items-center justify-between mb-2 px-1">
-            <p class="text-xs font-black text-slate-500 uppercase tracking-widest" id="fotoCountLabel">0 foto</p>
-            <button type="button" onclick="clearAllFoto()" class="text-xs text-rose-400 hover:text-rose-600 font-bold transition-colors">
-                <i class="fas fa-trash mr-1"></i>Hapus Semua
-            </button>
-        </div>
-        <div id="fotoPreviewGrid" class="grid grid-cols-3 gap-2"></div>
-    </div>
- 
-    <!-- Empty state -->
-    <div id="fotoEmptyState" class="flex flex-col items-center justify-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 text-slate-400">
-        <i class="fas fa-camera text-3xl mb-2 opacity-40"></i>
-        <p class="text-xs font-bold">Belum ada foto dokumentasi</p>
-        <p class="text-[10px] mt-1">Gunakan kamera atau upload dari galeri</p>
-    </div>
-</div>
- 
-                    <div class="col-span-2 flex items-center space-x-3 bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                        <input type="checkbox" id="generateLaporan" checked class="w-5 h-5 accent-emerald-600">
-                        <label for="generateLaporan" class="text-sm font-bold text-emerald-700 cursor-pointer">
-                            <i class="fas fa-robot mr-2"></i>Auto-generate laporan setelah simpan
+                </div>
+
+                <!-- Kendala -->
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Kendala <span class="normal-case font-medium text-slate-300">(opsional)</span></label>
+                    <input type="text" id="activityKendala" class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" placeholder="Alat cangkul kurang, cuaca hujan, dll">
+                </div>
+
+                <!-- Hasil -->
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Hasil Kegiatan <span class="normal-case font-medium text-slate-300">(opsional)</span></label>
+                    <input type="text" id="activityHasil" class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" placeholder="30 bibit berhasil ditanam, dll">
+                </div>
+
+                <!-- Dokumentasi Foto -->
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Dokumentasi Foto</label>
+                    <div class="flex gap-2 sm:gap-3 mb-3">
+                        <button type="button" onclick="openCamera()"
+                            class="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all active:scale-95 text-xs sm:text-sm">
+                            <i class="fas fa-camera"></i>
+                            <span>Buka Kamera</span>
+                        </button>
+                        <label class="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all active:scale-95 text-xs sm:text-sm cursor-pointer">
+                            <i class="fas fa-image"></i>
+                            <span>Upload Foto</span>
+                            <input type="file" id="uploadFotoInput" accept="image/*" multiple class="hidden" onchange="handleUploadFoto(this)">
                         </label>
                     </div>
+
+                    <!-- Preview -->
+                    <div id="fotoPreviewContainer" class="hidden">
+                        <div class="flex items-center justify-between mb-2 px-1">
+                            <p class="text-xs font-black text-slate-500 uppercase tracking-widest" id="fotoCountLabel">0 foto</p>
+                            <button type="button" onclick="clearAllFoto()" class="text-xs text-rose-400 hover:text-rose-600 font-bold transition-colors">
+                                <i class="fas fa-trash mr-1"></i>Hapus Semua
+                            </button>
+                        </div>
+                        <div id="fotoPreviewGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2"></div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div id="fotoEmptyState" class="flex flex-col items-center justify-center py-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400">
+                        <i class="fas fa-camera text-2xl mb-2 opacity-40"></i>
+                        <p class="text-xs font-bold">Belum ada foto dokumentasi</p>
+                        <p class="text-[10px] mt-0.5">Gunakan kamera atau upload dari galeri</p>
+                    </div>
                 </div>
-                <div class="flex space-x-4 pt-2">
-                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black py-4 rounded-2xl transition-all">BATAL</button>
-                    <button type="submit" id="submitBtn" class="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-100 transition-all active:scale-95">
+
+                <!-- Auto-generate -->
+                <div class="flex items-center gap-3 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                    <input type="checkbox" id="generateLaporan" checked class="w-4 h-4 accent-emerald-600 flex-shrink-0">
+                    <label for="generateLaporan" class="text-xs sm:text-sm font-bold text-emerald-700 cursor-pointer">
+                        <i class="fas fa-robot mr-1.5"></i>Auto-generate laporan setelah simpan
+                    </label>
+                </div>
+
+                <!-- Tombol aksi -->
+                <div class="flex gap-3 pt-1">
+                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black py-3.5 rounded-xl transition-all text-sm">BATAL</button>
+                    <button type="submit" id="submitBtn" class="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl shadow-lg shadow-emerald-100 transition-all active:scale-95 text-sm">
                         SIMPAN KEGIATAN
                     </button>
                 </div>
@@ -250,20 +357,44 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         POPUP KONFIRMASI KELUAR SISTEM
+    ════════════════════════════════════════════════════════════════ -->
+    <div id="logoutModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="popup-confirm bg-white w-full max-w-sm rounded-[1.75rem] shadow-2xl overflow-hidden">
+            <!-- Icon area -->
+            <div class="bg-gradient-to-br from-rose-50 to-red-50 px-8 pt-8 pb-6 flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+                    <i class="fas fa-sign-out-alt text-rose-500 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-extrabold text-slate-900 mb-1">Keluar Sistem?</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Anda akan keluar dari Panel Pokja Adiwiyata. Pastikan semua data sudah tersimpan.</p>
+            </div>
+            <!-- Tombol -->
+            <div class="p-5 flex flex-col gap-3">
+                <button onclick="doLogout()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-black py-3.5 rounded-xl transition-all active:scale-95 text-sm shadow-lg shadow-rose-100">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Ya, Keluar Sekarang
+                </button>
+                <button onclick="closeLogoutModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-3.5 rounded-xl transition-all text-sm">
+                    Batal, Tetap di Sini
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center space-x-3 transition-all duration-500 z-50">
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3 transition-all duration-500 z-50 max-w-[calc(100%-2rem)] w-max">
         <i class="fas fa-check-circle text-emerald-400" id="toastIcon"></i>
         <span id="toastMsg" class="text-sm font-bold"></span>
     </div>
 
     <script>
-        const API_URL = "http://10.230.7.119:3001/api";
-const AI_URL  = "http://10.230.7.119:3001/api/ai";
+        const API_URL = "http://192.168.8.101:3001/api";
+        const AI_URL  = "http://192.168.8.101:3001/api/ai";
         const user    = JSON.parse(localStorage.getItem('user') || '{}');
         let currentPokjaId = null;
 
         // ── Badge helpers ─────────────────────────────────────────────────────
-
         const statusKegiatan = {
             planned  : { label: 'Belum Terlaksana',    style: 'bg-slate-50 text-slate-500 border-slate-100'       },
             ongoing  : { label: 'Sedang Dilaksanakan', style: 'bg-blue-50 text-blue-600 border-blue-100'          },
@@ -271,35 +402,36 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
             cancelled: { label: 'Dibatalkan',          style: 'bg-rose-50 text-rose-600 border-rose-100'          },
         };
 
-        // Badge status persetujuan laporan (Bahasa Indonesia)
         const statusApprove = {
-            pending : {
-                label: 'Menunggu Persetujuan',
-                style: 'bg-amber-50 text-amber-700 border-amber-200',
-                icon : 'fas fa-clock'
-            },
-            approved: {
-                label: 'Disetujui',
-                style: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                icon : 'fas fa-check-circle'
-            },
-            rejected: {
-                label: 'Perlu Revisi',
-                style: 'bg-rose-50 text-rose-700 border-rose-200',
-                icon : 'fas fa-times-circle'
-            },
+            pending : { label: 'Menunggu Persetujuan', style: 'bg-amber-50 text-amber-700 border-amber-200',   icon: 'fas fa-clock'        },
+            approved: { label: 'Disetujui',            style: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: 'fas fa-check-circle' },
+            rejected: { label: 'Perlu Revisi',         style: 'bg-rose-50 text-rose-700 border-rose-200',      icon: 'fas fa-times-circle' },
         };
 
-        // ── Init ──────────────────────────────────────────────────────────────
+        // ── Hamburger Sidebar ─────────────────────────────────────────────────
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
 
+        // ── Init ──────────────────────────────────────────────────────────────
         async function init() {
             const name    = user.name  || "Ketua Pokja";
             const pokja   = user.pokja || "–";
             const initial = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
 
+            // Sidebar
             document.getElementById('currentLeaderName').innerText = name;
             document.getElementById('currentPokjaName').innerText  = "Ketua " + pokja;
             document.getElementById('userInitial').innerText       = initial;
+
+
 
             await loadPokjaId(pokja);
             loadKegiatan();
@@ -309,26 +441,19 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
             try {
                 const res  = await fetch(`${API_URL}/pokja`);
                 const list = await res.json();
-
-                let found = list.find(p =>
-                    (p.nama || p.name || '').toLowerCase() === namaPokja.toLowerCase()
-                );
+                let found = list.find(p => (p.nama || p.name || '').toLowerCase() === namaPokja.toLowerCase());
                 if (!found) {
                     found = list.find(p =>
                         (p.nama || p.name || '').toLowerCase().includes(namaPokja.toLowerCase())
                         || namaPokja.toLowerCase().includes((p.nama || p.name || '').toLowerCase())
                     );
                 }
-                if (found) {
-                    currentPokjaId = found.id;
-                } else {
-                    console.warn('Pokja tidak ditemukan:', namaPokja);
-                }
+                if (found) currentPokjaId = found.id;
+                else console.warn('Pokja tidak ditemukan:', namaPokja);
             } catch(e) { console.error(e); }
         }
 
         // ── Tab Switching ─────────────────────────────────────────────────────
-
         function switchTab(tab) {
             ['kegiatan','laporan','insight'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden');
@@ -345,7 +470,6 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
         }
 
         // ── Load Kegiatan ─────────────────────────────────────────────────────
-
         async function loadKegiatan() {
             const tbody = document.getElementById('leaderActivityTable');
             tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>';
@@ -355,7 +479,7 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
                 document.getElementById('activityCount').innerText = data.length;
 
                 if (!data.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic font-bold">Belum ada kegiatan. Klik "Input Kegiatan Baru" untuk mulai.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400 italic font-bold text-sm">Belum ada kegiatan. Klik "Input Kegiatan Baru" untuk mulai.</td></tr>';
                     return;
                 }
 
@@ -364,21 +488,22 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
                     const tgl = new Date(k.tanggal).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
                     return `
                         <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
-                            <td class="p-8">
-                                <p class="font-extrabold text-slate-900">${k.judul}</p>
-                                ${k.lokasi ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>${k.lokasi}</p>` : ''}
+                            <td class="px-6 py-5">
+                                <p class="font-extrabold text-slate-900 text-sm">${k.judul}</p>
+                                ${k.lokasi ? `<p class="text-xs text-slate-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${k.lokasi}</p>` : ''}
+                                <p class="text-xs text-slate-400 mt-0.5 sm:hidden">${tgl} · ${k.jumlah_peserta} orang</p>
                             </td>
-                            <td class="p-4 text-xs font-bold text-slate-500">${tgl}</td>
-                            <td class="p-4 text-xs font-bold text-slate-700">${k.jumlah_peserta} orang</td>
-                            <td class="p-4">
-                                <span class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border ${s.style}">${s.label}</span>
+                            <td class="px-4 py-5 text-xs font-bold text-slate-500 hide-mobile whitespace-nowrap">${tgl}</td>
+                            <td class="px-4 py-5 text-xs font-bold text-slate-700 hide-mobile">${k.jumlah_peserta} orang</td>
+                            <td class="px-4 py-5">
+                                <span class="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border ${s.style} whitespace-nowrap">${s.label}</span>
                             </td>
-                            <td class="p-8 text-right">
-                                <div class="flex justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-all">
-                                    <button onclick="generateLaporanSingle(${k.id})" title="Generate Laporan" class="w-9 h-9 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
+                            <td class="px-6 py-5 text-right">
+                                <div class="flex justify-end space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
+                                    <button onclick="generateLaporanSingle(${k.id})" title="Generate Laporan" class="w-8 h-8 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
                                         <i class="fas fa-robot text-xs"></i>
                                     </button>
-                                    <button onclick="deleteKegiatan(${k.id})" title="Hapus" class="w-9 h-9 flex items-center justify-center bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
+                                    <button onclick="deleteKegiatan(${k.id})" title="Hapus" class="w-8 h-8 flex items-center justify-center bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
                                         <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 </div>
@@ -386,12 +511,11 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
                         </tr>`;
                 }).join('');
             } catch(e) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-rose-500 font-bold">Gagal memuat data. Pastikan Python AI server berjalan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-rose-500 font-bold text-sm">Gagal memuat data. Pastikan Python AI server berjalan.</td></tr>`;
             }
         }
 
-        // ── Load Laporan (dengan badge status approve) ─────────────────────────
-
+        // ── Load Laporan ──────────────────────────────────────────────────────
         async function loadLaporan() {
             const el = document.getElementById('laporanList');
             el.innerHTML = '<div class="skeleton h-32 w-full"></div><div class="skeleton h-32 w-full mt-4"></div>';
@@ -403,44 +527,39 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
                 const data = await res.json();
 
                 if (!data.length) {
-                    el.innerHTML = '<div class="text-center p-12 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold">Belum ada laporan. Generate laporan dari tab Kelola Kegiatan.</div>';
+                    el.innerHTML = '<div class="text-center p-10 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold text-sm">Belum ada laporan. Generate laporan dari tab Kelola Kegiatan.</div>';
                     return;
                 }
 
                 el.innerHTML = data.map(l => {
-                    // Status approve — default pending kalau belum ada kolom
                     const approveKey = l.status_approve || 'pending';
                     const ap = statusApprove[approveKey] || statusApprove.pending;
-
-                    // Catatan pengawas (kalau ada)
                     const catatanHtml = l.catatan_pengawas
                         ? `<div class="mt-4 flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4">
-                                <i class="fas fa-comment-dots text-amber-500 mt-0.5"></i>
+                                <i class="fas fa-comment-dots text-amber-500 mt-0.5 flex-shrink-0"></i>
                                 <div>
                                     <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Catatan Pengawas</p>
                                     <p class="text-sm text-amber-800 font-medium">${l.catatan_pengawas}</p>
                                 </div>
                            </div>`
                         : '';
-
                     return `
-                        <div class="bg-white rounded-[2rem] border ${approveKey === 'rejected' ? 'border-rose-200' : approveKey === 'approved' ? 'border-emerald-100' : 'border-slate-100'} shadow-xl p-8">
-                            <div class="flex items-start justify-between mb-4 flex-wrap gap-3">
-                                <div class="flex items-center gap-3 flex-wrap">
+                        <div class="bg-white rounded-[1.75rem] border ${approveKey === 'rejected' ? 'border-rose-200' : approveKey === 'approved' ? 'border-emerald-100' : 'border-slate-100'} shadow-xl p-5 sm:p-8">
+                            <div class="flex flex-wrap items-start justify-between mb-4 gap-3">
+                                <div class="flex flex-wrap items-center gap-2">
                                     <span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
                                         <i class="fas fa-robot mr-1"></i> Auto-Generated
                                     </span>
-                                    <!-- Badge Status Persetujuan -->
                                     <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border flex items-center gap-1.5 ${ap.style}">
                                         <i class="${ap.icon}"></i> ${ap.label}
                                     </span>
                                 </div>
-                                <span class="text-xs text-slate-400 font-bold whitespace-nowrap">
+                                <span class="text-xs text-slate-400 font-bold">
                                     ${new Date(l.created_at).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}
                                 </span>
                             </div>
-                            <h4 class="font-extrabold text-slate-900 text-lg mb-4">${l.judul}</h4>
-                            <div class="bg-slate-50 rounded-2xl p-6 text-sm text-slate-600 leading-relaxed whitespace-pre-line font-medium border border-slate-100">
+                            <h4 class="font-extrabold text-slate-900 text-base sm:text-lg mb-4">${l.judul}</h4>
+                            <div class="bg-slate-50 rounded-2xl p-4 sm:p-6 text-sm text-slate-600 leading-relaxed whitespace-pre-line font-medium border border-slate-100">
                                 ${l.konten}
                             </div>
                             ${catatanHtml}
@@ -452,7 +571,6 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
         }
 
         // ── Load AI Insight ───────────────────────────────────────────────────
-
         async function loadInsight() {
             const el = document.getElementById('insightContent');
             if (!currentPokjaId) {
@@ -463,7 +581,6 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
             try {
                 const res  = await fetch(`${AI_URL}/insight/${currentPokjaId}`);
                 const data = await res.json();
-
                 const labelColor = {
                     "Sangat Aktif" : "text-emerald-600 bg-emerald-50 border-emerald-200",
                     "Aktif"        : "text-blue-600 bg-blue-50 border-blue-200",
@@ -472,30 +589,27 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
                     "Tidak Aktif"  : "text-rose-600 bg-rose-50 border-rose-200",
                 };
                 const lc = labelColor[data.label] ?? "text-slate-600 bg-slate-50 border-slate-200";
-
                 el.innerHTML = `
-                    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-8 space-y-6">
-                        <div class="flex items-center justify-between">
+                    <div class="bg-white rounded-[1.75rem] border border-slate-100 shadow-xl p-5 sm:p-8 space-y-6">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pokja Kamu</p>
-                                <h3 class="text-2xl font-extrabold text-slate-900">${data.pokja_nama}</h3>
+                                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900">${data.pokja_nama}</h3>
                             </div>
                             <div class="text-right">
-                                <span class="text-4xl font-black text-emerald-600">${data.skor.toFixed(0)}</span>
+                                <span class="text-3xl sm:text-4xl font-black text-emerald-600">${data.skor.toFixed(0)}</span>
                                 <span class="text-slate-400 font-bold">/100</span>
                                 <p class="text-xs font-black px-3 py-1 rounded-xl border mt-2 inline-block ${lc}">${data.label}</p>
                             </div>
                         </div>
-                        <div class="w-full bg-slate-100 rounded-full h-4">
-                            <div class="h-4 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000" style="width:${data.skor}%"></div>
+                        <div class="w-full bg-slate-100 rounded-full h-3">
+                            <div class="h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000" style="width:${data.skor}%"></div>
                         </div>
-                        <div class="bg-slate-900 rounded-2xl p-6">
+                        <div class="bg-slate-900 rounded-2xl p-5 sm:p-6">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
                                 <i class="fas fa-robot mr-2 text-emerald-400"></i>Analisis AI
                             </p>
-                            ${data.insights.map(ins =>
-                                `<p class="text-sm text-slate-200 font-medium leading-relaxed">${ins}</p>`
-                            ).join('')}
+                            ${data.insights.map(ins => `<p class="text-sm text-slate-200 font-medium leading-relaxed">${ins}</p>`).join('')}
                         </div>
                     </div>`;
             } catch(e) {
@@ -503,21 +617,27 @@ const AI_URL  = "http://10.230.7.119:3001/api/ai";
             }
         }
 
-        // ── Modal & Form ──────────────────────────────────────────────────────
-
+        // ── Modal Kegiatan ────────────────────────────────────────────────────
         function openAddModal() {
             document.getElementById('modalTitle').innerText = "Input Kegiatan Baru";
             document.getElementById('activityForm').reset();
+            fotoFiles = [];
+            renderFotoPreview();
             document.getElementById('activityModal').classList.add('modal-active');
             document.getElementById('activityModal').classList.remove('hidden');
         }
 
-function closeModal() {
-    document.getElementById('activityModal').classList.remove('modal-active');
-    document.getElementById('activityModal').classList.add('hidden');
-    fotoFiles = [];          // ← tambah ini
-    renderFotoPreview();     // ← tambah ini
-}
+        function closeModal() {
+            document.getElementById('activityModal').classList.remove('modal-active');
+            document.getElementById('activityModal').classList.add('hidden');
+            fotoFiles = [];
+            renderFotoPreview();
+        }
+
+        // Tutup modal kalau klik background
+        document.getElementById('activityModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
 
         document.getElementById('activityForm').onsubmit = async (e) => {
             e.preventDefault();
@@ -525,14 +645,14 @@ function closeModal() {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Menyimpan...';
 
-            const nama      = document.getElementById('activityName').value;
-            const tanggal   = document.getElementById('activityDate').value;
-            const peserta   = parseInt(document.getElementById('activityPeserta').value);
-            const lokasi    = document.getElementById('activityLokasi').value;
-            const status    = document.getElementById('activityStatus').value;
-            const kendala   = document.getElementById('activityKendala').value;
-            const hasil     = document.getElementById('activityHasil').value;
-            const doGenerate= document.getElementById('generateLaporan').checked;
+            const nama       = document.getElementById('activityName').value;
+            const tanggal    = document.getElementById('activityDate').value;
+            const peserta    = parseInt(document.getElementById('activityPeserta').value);
+            const lokasi     = document.getElementById('activityLokasi').value;
+            const status     = document.getElementById('activityStatus').value;
+            const kendala    = document.getElementById('activityKendala').value;
+            const hasil      = document.getElementById('activityHasil').value;
+            const doGenerate = document.getElementById('generateLaporan').checked;
 
             if (!currentPokjaId) {
                 showToast('Pokja tidak ditemukan di sistem AI!', 'error');
@@ -579,10 +699,12 @@ function closeModal() {
                         if (!err.detail?.includes('sudah ada')) console.warn(err.detail);
                     }
                 }
-                 if (fotoFiles.length > 0) {
-        const nFoto = await uploadFotoKegiatan(kegiatan.id);
-        if (nFoto > 0) showToast(`${nFoto} foto dokumentasi berhasil diupload!`);
-    }
+
+                if (fotoFiles.length > 0) {
+                    const nFoto = await uploadFotoKegiatan(kegiatan.id);
+                    if (nFoto > 0) showToast(`${nFoto} foto dokumentasi berhasil diupload!`);
+                }
+
                 await fetch(`${AI_URL}/recalculate`, { method: 'POST' });
                 showToast(doGenerate ? 'Kegiatan & laporan berhasil disimpan! Menunggu persetujuan pengawas.' : 'Kegiatan berhasil disimpan!');
                 closeModal();
@@ -595,181 +717,153 @@ function closeModal() {
                 btn.innerHTML = 'SIMPAN KEGIATAN';
             }
         };
- 
-// ── State dokumentasi ─────────────────────────────────────────────────
-let fotoFiles = []; // array of { dataUrl, file }
- 
-// ── Buka kamera di popup window ───────────────────────────────────────
-function openCamera() {
-    const nama    = document.getElementById('activityName').value || 'Kegiatan';
-    const pokja   = user.pokja || 'Pokja';
-    const params  = new URLSearchParams({
-        pokja   : pokja,
-        kegiatan: nama,
-    });
-    const popup = window.open(
-        `/static/camera/index.html?${params}`,
-        'kamera_adiwiyata',
-        'width=480,height=780,toolbar=no,menubar=no,scrollbars=yes'
-    );
-    if (!popup) {
-        showToast('Popup diblokir browser. Izinkan popup untuk halaman ini.', 'error');
-    }
-}
- 
-// ── Fungsi yang dipanggil oleh popup kamera ───────────────────────────
-// (Harus di window scope agar bisa dipanggil dari popup)
-window.receiveCapturedPhotos = function(photos) {
-    photos.forEach(p => fotoFiles.push(p));
-    renderFotoPreview();
-    showToast(`${photos.length} foto berhasil ditambahkan!`);
-};
- 
-// ── Upload dari galeri ─────────────────────────────────────────────────
-function handleUploadFoto(input) {
-    const files = Array.from(input.files);
-    if (!files.length) return;
- 
-    files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img    = new Image();
-            img.onload   = () => {
-                const canvas  = document.createElement('canvas');
-                canvas.width  = img.width;
-                canvas.height = img.height;
-                const ctx     = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
- 
-                // Tambah watermark
-                addWatermarkKetua(ctx, canvas.width, canvas.height);
- 
-                const dataUrl  = canvas.toDataURL('image/jpeg', 0.92);
-                const now      = new Date();
-                const pokja    = user.pokja || 'Pokja';
-                const filename = `${pokja.replace(/\s/g,'-')}_${now.toISOString().slice(0,10)}_${fotoFiles.length}.jpg`;
- 
-                canvas.toBlob(blob => {
-                    const newFile = new File([blob], filename, { type: 'image/jpeg' });
-                    fotoFiles.push({ dataUrl, file: newFile, filename });
-                    renderFotoPreview();
-                }, 'image/jpeg', 0.92);
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-    // Reset input agar bisa upload file yang sama lagi
-    input.value = '';
-}
- 
-// ── Watermark (versi inline, tanpa popup) ────────────────────────────
-function addWatermarkKetua(ctx, w, h) {
-    const now      = new Date();
-    const tgl      = now.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
-    const jam      = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
-    const pokja    = user.pokja || 'Adiwiyata';
-    const kegiatan = document.getElementById('activityName')?.value || '';
- 
-    const fontSize = Math.max(14, Math.floor(w / 45));
-    ctx.font       = `bold ${fontSize}px sans-serif`;
- 
-    // Strip gelap di bawah
-    const grd = ctx.createLinearGradient(0, h - fontSize * 4, 0, h);
-    grd.addColorStop(0, 'rgba(0,0,0,0)');
-    grd.addColorStop(1, 'rgba(0,0,0,0.7)');
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, h - fontSize * 4, w, fontSize * 4);
- 
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur  = 6;
- 
-    // Timestamp
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`${tgl} · ${jam}`, 12, h - fontSize * 1.8);
- 
-    // Nama pokja + kegiatan
-    ctx.fillStyle = '#34d399';
-    ctx.fillText(`${pokja}${kegiatan ? ' · ' + kegiatan : ''}`, 12, h - fontSize * 0.4);
-}
- 
-// ── Render preview grid foto ──────────────────────────────────────────
-function renderFotoPreview() {
-    const grid      = document.getElementById('fotoPreviewGrid');
-    const container = document.getElementById('fotoPreviewContainer');
-    const empty     = document.getElementById('fotoEmptyState');
-    const count     = fotoFiles.length;
- 
-    document.getElementById('fotoCountLabel').innerText = `${count} foto`;
- 
-    if (count === 0) {
-        container.classList.add('hidden');
-        empty.classList.remove('hidden');
-        return;
-    }
- 
-    container.classList.remove('hidden');
-    empty.classList.add('hidden');
- 
-    grid.innerHTML = fotoFiles.map((p, i) => `
-        <div class="relative rounded-xl overflow-hidden group" style="aspect-ratio:1">
-            <img src="${p.dataUrl}" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all"></div>
-            <button type="button" onclick="removeFoto(${i})"
-                class="absolute top-1 right-1 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg">
-                <i class="fas fa-times text-white text-[9px]"></i>
-            </button>
-            <div class="absolute bottom-1 left-1 bg-black/60 rounded px-1">
-                <span class="text-white text-[8px] font-black">${i+1}</span>
-            </div>
-        </div>
-    `).join('');
-}
- 
-function removeFoto(index) {
-    fotoFiles.splice(index, 1);
-    renderFotoPreview();
-}
- 
-function clearAllFoto() {
-    if (!confirm('Hapus semua foto?')) return;
-    fotoFiles = [];
-    renderFotoPreview();
-}
- 
-// ── Upload foto ke server (dipanggil setelah kegiatan tersimpan) ──────
-async function uploadFotoKegiatan(kegiatanId) {
-    if (!fotoFiles.length) return;
- 
-    const uploadPromises = fotoFiles.map(async (f, idx) => {
-        const formData = new FormData();
-        formData.append('file', f.file);
-        formData.append('kegiatan_id', kegiatanId);
-        formData.append('deskripsi', `Dokumentasi ${idx + 1}`);
- 
-        try {
-            const res = await fetch('http://localhost:8000/dokumentasi/upload', {
-                method: 'POST',
-                body  : formData,
-            });
-            return res.ok;
-        } catch(e) {
-            console.error('Upload foto gagal:', e);
-            return false;
+
+        // ── Logout Modal ──────────────────────────────────────────────────────
+        function confirmLogout() {
+            document.getElementById('logoutModal').classList.remove('hidden');
+            document.getElementById('logoutModal').classList.add('flex');
         }
-    });
- 
-    const results  = await Promise.all(uploadPromises);
-    const berhasil = results.filter(Boolean).length;
-    return berhasil;
-}
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+            document.getElementById('logoutModal').classList.remove('flex');
+        }
+
+        function doLogout() {
+            localStorage.removeItem('user');
+            window.top.location.href = '/login';
+        }
+
+        // Tutup logout modal kalau klik background
+        document.getElementById('logoutModal').addEventListener('click', function(e) {
+            if (e.target === this) closeLogoutModal();
+        });
+
+        // ── Dokumentasi Foto ──────────────────────────────────────────────────
+        let fotoFiles = [];
+
+        function openCamera() {
+            const nama   = document.getElementById('activityName').value || 'Kegiatan';
+            const pokja  = user.pokja || 'Pokja';
+            const params = new URLSearchParams({ pokja, kegiatan: nama });
+            const popup  = window.open(`/static/camera/index.html?${params}`, 'kamera_adiwiyata', 'width=480,height=780,toolbar=no,menubar=no,scrollbars=yes');
+            if (!popup) showToast('Popup diblokir browser. Izinkan popup untuk halaman ini.', 'error');
+        }
+
+        window.receiveCapturedPhotos = function(photos) {
+            photos.forEach(p => fotoFiles.push(p));
+            renderFotoPreview();
+            showToast(`${photos.length} foto berhasil ditambahkan!`);
+        };
+
+        function handleUploadFoto(input) {
+            const files = Array.from(input.files);
+            if (!files.length) return;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas  = document.createElement('canvas');
+                        canvas.width  = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        addWatermarkKetua(ctx, canvas.width, canvas.height);
+                        const dataUrl  = canvas.toDataURL('image/jpeg', 0.92);
+                        const now      = new Date();
+                        const pokja    = user.pokja || 'Pokja';
+                        const filename = `${pokja.replace(/\s/g,'-')}_${now.toISOString().slice(0,10)}_${fotoFiles.length}.jpg`;
+                        canvas.toBlob(blob => {
+                            const newFile = new File([blob], filename, { type: 'image/jpeg' });
+                            fotoFiles.push({ dataUrl, file: newFile, filename });
+                            renderFotoPreview();
+                        }, 'image/jpeg', 0.92);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            input.value = '';
+        }
+
+        function addWatermarkKetua(ctx, w, h) {
+            const now      = new Date();
+            const tgl      = now.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+            const jam      = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+            const pokja    = user.pokja || 'Adiwiyata';
+            const kegiatan = document.getElementById('activityName')?.value || '';
+            const fontSize = Math.max(14, Math.floor(w / 45));
+            ctx.font       = `bold ${fontSize}px sans-serif`;
+            const grd = ctx.createLinearGradient(0, h - fontSize * 4, 0, h);
+            grd.addColorStop(0, 'rgba(0,0,0,0)');
+            grd.addColorStop(1, 'rgba(0,0,0,0.7)');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, h - fontSize * 4, w, fontSize * 4);
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur  = 6;
+            ctx.fillStyle   = '#ffffff';
+            ctx.fillText(`${tgl} · ${jam}`, 12, h - fontSize * 1.8);
+            ctx.fillStyle = '#34d399';
+            ctx.fillText(`${pokja}${kegiatan ? ' · ' + kegiatan : ''}`, 12, h - fontSize * 0.4);
+        }
+
+        function renderFotoPreview() {
+            const grid      = document.getElementById('fotoPreviewGrid');
+            const container = document.getElementById('fotoPreviewContainer');
+            const empty     = document.getElementById('fotoEmptyState');
+            const count     = fotoFiles.length;
+            document.getElementById('fotoCountLabel').innerText = `${count} foto`;
+            if (count === 0) {
+                container.classList.add('hidden');
+                empty.classList.remove('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+            empty.classList.add('hidden');
+            grid.innerHTML = fotoFiles.map((p, i) => `
+                <div class="relative rounded-xl overflow-hidden group" style="aspect-ratio:1">
+                    <img src="${p.dataUrl}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all"></div>
+                    <button type="button" onclick="removeFoto(${i})"
+                        class="absolute top-1 right-1 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg">
+                        <i class="fas fa-times text-white text-[9px]"></i>
+                    </button>
+                    <div class="absolute bottom-1 left-1 bg-black/60 rounded px-1">
+                        <span class="text-white text-[8px] font-black">${i+1}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeFoto(index) { fotoFiles.splice(index, 1); renderFotoPreview(); }
+        function clearAllFoto() {
+            if (!confirm('Hapus semua foto?')) return;
+            fotoFiles = [];
+            renderFotoPreview();
+        }
+
+        async function uploadFotoKegiatan(kegiatanId) {
+            if (!fotoFiles.length) return;
+            const results = await Promise.all(fotoFiles.map(async (f, idx) => {
+                const formData = new FormData();
+                formData.append('file', f.file);
+                formData.append('kegiatan_id', kegiatanId);
+                formData.append('deskripsi', `Dokumentasi ${idx + 1}`);
+                try {
+                    const res = await fetch('http://localhost:8000/dokumentasi/upload', { method: 'POST', body: formData });
+                    return res.ok;
+                } catch(e) { console.error('Upload foto gagal:', e); return false; }
+            }));
+            return results.filter(Boolean).length;
+        }
+
         async function generateLaporanSingle(kegiatanId) {
             showToast('Membuat laporan...', 'info');
             try {
                 const resK = await fetch(`http://localhost:8000/kegiatan/${kegiatanId}`);
                 if (!resK.ok) { showToast('Kegiatan tidak ditemukan.', 'error'); return; }
                 const k = await resK.json();
-
                 const res = await fetch('http://localhost:8000/laporan/generate', {
                     method : 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -784,7 +878,6 @@ async function uploadFotoKegiatan(kegiatanId) {
                         nama_pokja    : user.pokja || 'Pokja',
                     })
                 });
-
                 if (res.ok) {
                     showToast('Laporan berhasil dibuat! Menunggu persetujuan pengawas.');
                 } else {
@@ -822,13 +915,6 @@ async function uploadFotoKegiatan(kegiatanId) {
                 toast.classList.add('translate-y-20','opacity-0');
                 toast.classList.remove('translate-y-0','opacity-100');
             }, 3500);
-        }
-
-        function confirmLogout() {
-            if (confirm('Keluar dari sistem?')) {
-                localStorage.removeItem('user');
-                window.top.location.href = '/login';
-            }
         }
 
         init();

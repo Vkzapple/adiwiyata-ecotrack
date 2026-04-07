@@ -1,134 +1,250 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Panel Pokja Adiwiyata</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
-      body { font-family: "Plus Jakarta Sans", sans-serif; background-color: #f8fafc; color: #1e293b; }
-      .sidebar-link.active { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.2); }
-      .sidebar-link.active i { color: white !important; opacity: 1; }
-      ::-webkit-scrollbar { width: 5px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-      .fade-up { animation: fadeUp 0.5s ease-out forwards; }
-      @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
-      @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    </style>
-  </head>
-  <body class="min-h-screen flex flex-col md:flex-row">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Panel Pokja Adiwiyata</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
 
-    <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20">
-      <div class="p-8 flex items-center space-x-4">
-        <div class="relative">
-          <div class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"></div>
-          <div class="relative w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+    body { font-family: "Plus Jakarta Sans", sans-serif; background-color: #f8fafc; color: #1e293b; }
+
+    .sidebar-link.active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 10px 15px -3px rgba(16,185,129,0.2);
+    }
+    .sidebar-link.active i { color: white !important; opacity: 1; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    /* Animations */
+    .fade-up { animation: fadeUp 0.5s ease-out forwards; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 12px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ── Sidebar mobile drawer ── */
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100%;
+      width: 280px;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 40;
+    }
+    #sidebar.open { transform: translateX(0); }
+
+    /* ── Sidebar desktop: sticky ── */
+    @media (min-width: 768px) {
+      #sidebar {
+        position: sticky;
+        top: 0;
+        transform: translateX(0);
+        width: 288px;
+        height: 100vh;
+      }
+      #sidebarOverlay { display: none !important; }
+      #mobileTopbar   { display: none !important; }
+    }
+
+    /* Overlay */
+    #sidebarOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.45);
+      backdrop-filter: blur(2px);
+      z-index: 30;
+    }
+    #sidebarOverlay.open { display: block; }
+
+    /* Mobile topbar */
+    #mobileTopbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    /* Table hide columns on mobile */
+    @media (max-width: 640px) {
+      .hide-mobile { display: none; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#f8fafc]">
+
+  <!-- ── OVERLAY (mobile) ── -->
+  <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ── MOBILE TOPBAR ── -->
+  <header id="mobileTopbar" class="bg-white border-b border-slate-100 shadow-sm flex items-center gap-3 px-4 py-3">
+    <button onclick="openSidebar()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all flex-shrink-0">
+      <i class="fas fa-bars text-sm"></i>
+    </button>
+    <div class="flex items-center space-x-2.5">
+      <div class="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md shadow-emerald-200 flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-base tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
+        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Monitoring System</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── WRAPPER ── -->
+  <div class="flex min-h-screen">
+
+    <!-- ── SIDEBAR ── -->
+    <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col shadow-2xl md:shadow-none">
+
+      <!-- Logo -->
+      <div class="p-6 md:p-8 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <div class="absolute -inset-1 bg-emerald-500 rounded-xl blur opacity-25"></div>
+            <div class="relative w-11 h-11 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+          </div>
+          <div>
+            <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Monitoring System</p>
           </div>
         </div>
-        <div>
-          <h1 class="font-extrabold text-xl tracking-tighter text-slate-900 leading-none">Adi<span class="text-emerald-500">wiyata</span></h1>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Monitoring System</p>
-        </div>
+        <!-- Close button (mobile only) -->
+        <button onclick="closeSidebar()" class="md:hidden w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all">
+          <i class="fas fa-times text-sm"></i>
+        </button>
       </div>
-      <nav class="mt-4 px-6 space-y-2">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 px-2">Menu</p>
+
+      <!-- Navigation -->
+      <nav class="mt-4 px-4 space-y-1 flex-1">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-3 px-3">Menu Utama</p>
         <a href="#" class="sidebar-link active w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 group">
           <i class="fas fa-chart-line mr-3 w-5 opacity-70"></i> Dashboard
         </a>
       </nav>
+
+      <!-- Login button bottom -->
+      <div class="px-4 pb-6 pt-2 border-t border-slate-100 mt-2">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-3 px-3 mt-3">Akun</p>
+        <button onclick="window.top.location.href='/login'" class="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all group">
+          <i class="fas fa-sign-in-alt mr-3 w-5 group-hover:translate-x-1 transition-transform"></i> Login Admin
+        </button>
+      </div>
     </aside>
 
-    <main class="flex-1 p-6 md:p-12 overflow-y-auto bg-[#f8fafc]">
+    <!-- ── MAIN CONTENT ── -->
+    <main class="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto bg-[#f8fafc] min-w-0">
 
       <!-- Header -->
-      <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 fade-up">
+      <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 fade-up">
         <div>
-          <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Monitoring Dashboard</h2>
-          <p class="text-slate-500 mt-1">Pantau progres kegiatan Pokja secara real-time.</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Monitoring Dashboard</h2>
+          <p class="text-slate-500 mt-1 text-sm">Pantau progres kegiatan Pokja secara real-time.</p>
         </div>
-        <div class="flex items-center space-x-4">
-          <button onclick="refreshAll()" class="flex items-center space-x-2 bg-white border border-slate-200 text-slate-600 px-5 py-3 rounded-2xl text-sm font-bold transition-all hover:bg-slate-50 active:scale-95">
-            <i class="fas fa-sync-alt text-emerald-500"></i><span>Refresh</span>
+        <div class="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">
+          <button onclick="refreshAll()" class="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-3 rounded-2xl text-sm font-bold transition-all hover:bg-slate-50 active:scale-95">
+            <i class="fas fa-sync-alt text-emerald-500"></i>
+            <span>Refresh</span>
           </button>
-          <button onclick="window.top.location.href='/login'" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl text-sm font-black transition-all shadow-xl shadow-emerald-200 active:scale-95">
-            <i class="fas fa-sign-in-alt"></i><span>LOGIN ADMIN</span>
+          <button onclick="window.top.location.href='/login'" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl text-sm font-black transition-all shadow-xl shadow-emerald-200 active:scale-95">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>LOGIN ADMIN</span>
           </button>
         </div>
       </header>
 
       <!-- Stat Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 fade-up" style="animation-delay:0.1s">
-        <div class="bg-white p-8 roundewhad-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex justify-between items-center group hover:border-emerald-200 transition-all">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 fade-up" style="animation-delay:0.1s">
+
+        <div class="bg-white p-5 sm:p-6 rounded-[1.75rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex justify-between items-center group hover:border-emerald-200 transition-all">
           <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-1">Total Pokja</p>
-            <h3 class="text-3xl font-black text-slate-900" id="stat-pokja"><span class="skeleton inline-block w-12 h-8">&nbsp;</span></h3>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pokja</p>
+            <h3 class="text-2xl sm:text-3xl font-black text-slate-900" id="stat-pokja">
+              <span class="skeleton inline-block w-12 h-8">&nbsp;</span>
+            </h3>
           </div>
-          <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
+          <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
             <i class="fas fa-users"></i>
           </div>
         </div>
 
-        <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex justify-between items-center group hover:border-blue-200 transition-all">
+        <div class="bg-white p-5 sm:p-6 rounded-[1.75rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex justify-between items-center group hover:border-blue-200 transition-all">
           <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-1">Total Kegiatan</p>
-            <h3 class="text-3xl font-black text-slate-900" id="stat-kegiatan"><span class="skeleton inline-block w-12 h-8">&nbsp;</span></h3>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Kegiatan</p>
+            <h3 class="text-2xl sm:text-3xl font-black text-slate-900" id="stat-kegiatan">
+              <span class="skeleton inline-block w-12 h-8">&nbsp;</span>
+            </h3>
           </div>
-          <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
+          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
             <i class="fas fa-clipboard-list"></i>
           </div>
         </div>
 
-        <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex justify-between items-center group hover:border-amber-200 transition-all">
+        <div class="bg-white p-5 sm:p-6 rounded-[1.75rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex justify-between items-center group hover:border-amber-200 transition-all">
           <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-1">Pokja Teraktif</p>
-            <h3 class="text-base font-black text-emerald-600" id="stat-teraktif"><span class="skeleton inline-block w-32 h-6">&nbsp;</span></h3>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pokja Teraktif</p>
+            <h3 class="text-base font-black text-emerald-600" id="stat-teraktif">
+              <span class="skeleton inline-block w-32 h-6">&nbsp;</span>
+            </h3>
           </div>
-          <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl">
+          <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
             <i class="fas fa-trophy"></i>
           </div>
         </div>
       </div>
 
       <!-- Chart + Ranking -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 fade-up" style="animation-delay:0.2s">
 
         <!-- Chart -->
-        <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/60 border border-slate-100 fade-up" style="animation-delay:0.2s">
-          <h3 class="text-lg font-extrabold text-slate-900 mb-8 flex items-center">
-            <span class="w-2 h-8 bg-emerald-500 rounded-full mr-4"></span>
+        <div class="lg:col-span-2 bg-white p-6 sm:p-8 rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-100">
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mb-6 flex items-center">
+            <span class="w-2 h-7 bg-emerald-500 rounded-full mr-3 flex-shrink-0"></span>
             Skor Performa Pokja (AI Analysis)
           </h3>
-          <div class="h-[300px]">
+          <div class="h-[260px] sm:h-[300px]">
             <canvas id="efficiencyChart"></canvas>
           </div>
         </div>
 
         <!-- Ranking -->
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/60 border border-slate-100 fade-up" style="animation-delay:0.3s">
-          <h3 class="text-lg font-extrabold text-slate-900 mb-6 flex items-center">
-            <i class="fas fa-award mr-3 text-amber-500 text-2xl"></i>Peringkat Pokja
+        <div class="bg-white p-6 sm:p-8 rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-100">
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mb-5 flex items-center">
+            <i class="fas fa-award mr-3 text-amber-500 text-xl flex-shrink-0"></i>Peringkat Pokja
           </h3>
           <div class="space-y-3" id="rankingList">
-            <div class="skeleton h-16 w-full"></div>
-            <div class="skeleton h-16 w-full"></div>
-            <div class="skeleton h-16 w-full"></div>
+            <div class="skeleton h-14 w-full"></div>
+            <div class="skeleton h-14 w-full"></div>
+            <div class="skeleton h-14 w-full"></div>
           </div>
         </div>
       </div>
 
       <!-- AI Insights -->
-      <div class="bg-slate-900 rounded-[2rem] p-8 mb-8 fade-up" style="animation-delay:0.35s">
+      <div class="bg-slate-900 rounded-[2rem] p-6 sm:p-8 mb-6 fade-up" style="animation-delay:0.3s">
         <div class="flex items-center mb-4">
-          <i class="fas fa-robot text-emerald-400 text-xl mr-3"></i>
-          <h3 class="text-white font-extrabold text-lg">AI Global Insights</h3>
+          <i class="fas fa-robot text-emerald-400 text-xl mr-3 flex-shrink-0"></i>
+          <h3 class="text-white font-extrabold text-base sm:text-lg">AI Global Insights</h3>
         </div>
         <div class="space-y-2" id="insightList">
           <div class="skeleton h-8 w-full opacity-20"></div>
@@ -137,29 +253,42 @@
       </div>
 
       <!-- Activity Table -->
-      <div class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/60 border border-slate-100 fade-up" style="animation-delay:0.4s">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <h3 class="text-lg font-extrabold text-slate-900 flex items-center">
+      <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden fade-up" style="animation-delay:0.4s">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center px-6 sm:px-8 pt-6 sm:pt-8 pb-4 gap-4">
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center">
             <i class="fas fa-tasks mr-3 text-emerald-500"></i>Status Performa Pokja
           </h3>
           <div class="flex flex-wrap gap-2">
-            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100"><span class="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>SANGAT AKTIF</span>
-            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>AKTIF</span>
-            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100"><span class="w-2 h-2 bg-rose-500 rounded-full mr-2"></span>TIDAK AKTIF</span>
+            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+              <span class="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>SANGAT AKTIF
+            </span>
+            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+              <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>AKTIF
+            </span>
+            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+              <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>CUKUP AKTIF
+            </span>
+            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+              <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>KURANG AKTIF
+            </span>
+            <span class="flex items-center text-[9px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+              <span class="w-2 h-2 bg-rose-500 rounded-full mr-2"></span>TIDAK AKTIF
+            </span>
           </div>
         </div>
+
         <div class="overflow-x-auto">
-          <table class="w-full text-left">
+          <table class="w-full text-left min-w-[520px]">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[2px]">
-                <th class="p-6">Pokja</th>
-                <th class="p-6">Skor AI</th>
-                <th class="p-6">Konsistensi</th>
-                <th class="p-6">Penyelesaian</th>
-                <th class="p-6 text-center">Status</th>
+                <th class="px-6 py-5">Pokja</th>
+                <th class="px-4 py-5">Skor AI</th>
+                <th class="px-4 py-5 hide-mobile">Konsistensi</th>
+                <th class="px-4 py-5 hide-mobile">Penyelesaian</th>
+                <th class="px-4 py-5 text-center">Status</th>
               </tr>
             </thead>
-            <tbody id="activityStatusBody">
+            <tbody id="activityStatusBody" class="text-sm text-slate-600">
               <tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>
             </tbody>
           </table>
@@ -167,159 +296,194 @@
       </div>
 
     </main>
+  </div>
 
-    <script>
-      const AI_URL = "http://10.230.7.119:3001/api/ai";
-      let chartInstance = null;
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3 transition-all duration-500 z-50 max-w-[calc(100%-2rem)] w-max">
+    <i class="fas fa-check-circle text-emerald-400" id="toastIcon"></i>
+    <span id="toastMsg" class="text-sm font-bold"></span>
+  </div>
 
-      const labelColor = {
-        "Sangat Aktif" : { badge: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-        "Aktif"        : { badge: "bg-blue-100 text-blue-700 border-blue-200",          dot: "bg-blue-500"    },
-        "Cukup Aktif"  : { badge: "bg-yellow-100 text-yellow-700 border-yellow-200",    dot: "bg-yellow-500"  },
-        "Kurang Aktif" : { badge: "bg-orange-100 text-orange-700 border-orange-200",    dot: "bg-orange-500"  },
-        "Tidak Aktif"  : { badge: "bg-rose-100 text-rose-700 border-rose-200",          dot: "bg-rose-500"    },
-      };
+  <script>
+    const AI_URL = "http://10.127.194.221:3001/api/ai";
+    let chartInstance = null;
 
-      async function loadDashboard() {
-        try {
-          const res  = await fetch(`${AI_URL}/dashboard`);
-          const data = await res.json();
+    // ── Sidebar toggle ──────────────────────────────────────────────
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarOverlay').classList.add('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    }
 
-          // Stat cards
-          document.getElementById("stat-pokja").innerText     = data.total_pokja ?? "–";
-          document.getElementById("stat-kegiatan").innerText  = data.total_kegiatan ?? "–";
-          document.getElementById("stat-teraktif").innerText  = data.pokja_teraktif ?? "Belum ada data";
+    // ── Toast ───────────────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      const icon  = document.getElementById('toastIcon');
+      document.getElementById('toastMsg').innerText = msg;
+      icon.className = type === 'error' ? 'fas fa-times-circle text-rose-400'
+                     : type === 'info'  ? 'fas fa-circle-notch fa-spin text-blue-400'
+                     : 'fas fa-check-circle text-emerald-400';
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
 
-          const ranking = data.ranking_pokja ?? [];
+    // ── Label colors ────────────────────────────────────────────────
+    const labelColor = {
+      "Sangat Aktif" : { badge: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+      "Aktif"        : { badge: "bg-blue-100 text-blue-700 border-blue-200",          dot: "bg-blue-500"    },
+      "Cukup Aktif"  : { badge: "bg-yellow-100 text-yellow-700 border-yellow-200",    dot: "bg-yellow-500"  },
+      "Kurang Aktif" : { badge: "bg-orange-100 text-orange-700 border-orange-200",    dot: "bg-orange-500"  },
+      "Tidak Aktif"  : { badge: "bg-rose-100 text-rose-700 border-rose-200",          dot: "bg-rose-500"    },
+    };
 
-          // Render chart
-          renderChart(ranking);
+    // ── Load dashboard ──────────────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const res  = await fetch(`${AI_URL}/dashboard`);
+        const data = await res.json();
 
-          // Render ranking list
-          renderRanking(ranking);
+        document.getElementById("stat-pokja").innerText    = data.total_pokja    ?? "–";
+        document.getElementById("stat-kegiatan").innerText = data.total_kegiatan ?? "–";
+        document.getElementById("stat-teraktif").innerText = data.pokja_teraktif ?? "Belum ada data";
 
-          // Render AI insights
-          renderInsights(data.insight_global ?? []);
+        const ranking = data.ranking_pokja ?? [];
+        renderChart(ranking);
+        renderRanking(ranking);
+        renderInsights(data.insight_global ?? []);
+        renderTable(ranking);
 
-          // Render table
-          renderTable(ranking);
-
-        } catch (e) {
-          console.error(e);
-          document.getElementById("stat-pokja").innerText    = "–";
-          document.getElementById("stat-kegiatan").innerText = "–";
-          document.getElementById("stat-teraktif").innerText = "Server offline";
-        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById("stat-pokja").innerText    = "–";
+        document.getElementById("stat-kegiatan").innerText = "–";
+        document.getElementById("stat-teraktif").innerText = "Server offline";
+        showToast("Gagal terhubung ke server.", "error");
       }
+    }
 
-      function renderChart(ranking) {
-        const ctx = document.getElementById("efficiencyChart").getContext("2d");
-        if (chartInstance) chartInstance.destroy();
+    function renderChart(ranking) {
+      const ctx = document.getElementById("efficiencyChart").getContext("2d");
+      if (chartInstance) chartInstance.destroy();
 
-        const colors = ranking.map(p => {
-          const s = p.skor_total;
-          if (s >= 80) return "#10b981";
-          if (s >= 60) return "#3b82f6";
-          if (s >= 40) return "#f59e0b";
-          if (s >= 20) return "#f97316";
-          return "#ef4444";
-        });
+      const colors = ranking.map(p => {
+        const s = p.skor_total;
+        if (s >= 80) return "#10b981";
+        if (s >= 60) return "#3b82f6";
+        if (s >= 40) return "#f59e0b";
+        if (s >= 20) return "#f97316";
+        return "#ef4444";
+      });
 
-        chartInstance = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels  : ranking.map(p => p.pokja_nama),
-            datasets: [{
-              label          : "Skor AI",
-              data           : ranking.map(p => p.skor_total),
-              backgroundColor: colors.map(c => c + "33"),
-              borderColor    : colors,
-              borderWidth    : 3,
-              borderRadius   : 12,
-            }],
-          },
-          options: {
-            responsive         : true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true, max: 100, grid: { borderDash: [5,5], color: "#f1f5f9" },
-                   ticks: { font: { family: "Plus Jakarta Sans", weight: "600" } } },
-              x: { grid: { display: false },
-                   ticks: { font: { family: "Plus Jakarta Sans", weight: "600" } } },
+      chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels  : ranking.map(p => p.pokja_nama),
+          datasets: [{
+            label          : "Skor AI",
+            data           : ranking.map(p => p.skor_total),
+            backgroundColor: colors.map(c => c + "33"),
+            borderColor    : colors,
+            borderWidth    : 3,
+            borderRadius   : 12,
+          }],
+        },
+        options: {
+          responsive         : true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true, max: 100,
+              grid : { borderDash: [5,5], color: "#f1f5f9" },
+              ticks: { font: { family: "Plus Jakarta Sans", weight: "600" } }
+            },
+            x: {
+              grid : { display: false },
+              ticks: { font: { family: "Plus Jakarta Sans", weight: "600" } }
             },
           },
-        });
-      }
+        },
+      });
+    }
 
-      function renderRanking(ranking) {
-        const el = document.getElementById("rankingList");
-        if (!ranking.length) {
-          el.innerHTML = '<p class="text-slate-400 text-sm text-center py-4 font-bold">Belum ada data</p>';
-          return;
-        }
-        el.innerHTML = ranking.slice(0, 5).map((p, i) => {
-          const lc = labelColor[p.label] ?? { badge: "bg-slate-100 text-slate-500" };
-          return `
-            <div class="flex items-center justify-between p-4 ${i === 0 ? "bg-emerald-50/50 border-emerald-100" : "bg-slate-50 border-slate-100"} border rounded-2xl hover:scale-[1.02] transition-all">
-              <div class="flex items-center space-x-3">
-                <span class="w-9 h-9 flex items-center justify-center rounded-xl ${i === 0 ? "bg-emerald-600 text-white" : "bg-white text-slate-400"} font-black text-sm shadow-sm">${i+1}</span>
-                <span class="font-extrabold text-slate-800 text-sm">${p.pokja_nama}</span>
-              </div>
-              <span class="text-xs font-black px-3 py-1 rounded-xl border ${lc.badge}">${p.skor_total.toFixed(0)}/100</span>
-            </div>`;
-        }).join('');
+    function renderRanking(ranking) {
+      const el = document.getElementById("rankingList");
+      if (!ranking.length) {
+        el.innerHTML = '<p class="text-slate-400 text-sm text-center py-4 font-bold">Belum ada data</p>';
+        return;
       }
+      el.innerHTML = ranking.slice(0, 5).map((p, i) => {
+        const lc = labelColor[p.label] ?? { badge: "bg-slate-100 text-slate-500 border-slate-200" };
+        return `
+          <div class="flex items-center justify-between p-3.5 ${i === 0 ? "bg-emerald-50/50 border-emerald-100" : "bg-slate-50 border-slate-100"} border rounded-2xl hover:scale-[1.02] transition-all">
+            <div class="flex items-center space-x-3 min-w-0">
+              <span class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-xl ${i === 0 ? "bg-emerald-600 text-white" : "bg-white text-slate-400"} font-black text-sm shadow-sm">${i + 1}</span>
+              <span class="font-extrabold text-slate-800 text-sm truncate">${p.pokja_nama}</span>
+            </div>
+            <span class="text-xs font-black px-3 py-1 rounded-xl border flex-shrink-0 ml-2 ${lc.badge}">${p.skor_total.toFixed(0)}/100</span>
+          </div>`;
+      }).join('');
+    }
 
-      function renderInsights(insights) {
-        const el = document.getElementById("insightList");
-        if (!insights.length) {
-          el.innerHTML = '<p class="text-slate-400 text-sm font-bold">Belum ada insight.</p>';
-          return;
-        }
-        el.innerHTML = insights.map(ins =>
-          `<p class="text-sm text-slate-300 bg-white/5 rounded-xl px-4 py-3 font-medium">${ins}</p>`
-        ).join('');
+    function renderInsights(insights) {
+      const el = document.getElementById("insightList");
+      if (!insights.length) {
+        el.innerHTML = '<p class="text-slate-400 text-sm font-bold">Belum ada insight.</p>';
+        return;
       }
+      el.innerHTML = insights.map(ins =>
+        `<p class="text-sm text-slate-300 bg-white/5 rounded-xl px-4 py-3 font-medium">${ins}</p>`
+      ).join('');
+    }
 
-      function renderTable(ranking) {
-        const tbody = document.getElementById("activityStatusBody");
-        if (!ranking.length) {
-          tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic font-bold">Jalankan seed_data.py untuk mengisi data contoh.</td></tr>';
-          return;
-        }
-        tbody.innerHTML = ranking.map(p => {
-          const lc = labelColor[p.label] ?? { badge: "bg-slate-100 text-slate-500", dot: "bg-slate-300" };
-          return `
-            <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-              <td class="p-6 font-extrabold text-slate-900">${p.pokja_nama}</td>
-              <td class="p-6">
-                <div class="flex items-center gap-3">
-                  <div class="w-24 bg-slate-100 rounded-full h-2">
-                    <div class="h-2 rounded-full bg-emerald-500 transition-all" style="width:${p.skor_total}%"></div>
-                  </div>
-                  <span class="text-xs font-black text-slate-600">${p.skor_total.toFixed(1)}</span>
+    function renderTable(ranking) {
+      const tbody = document.getElementById("activityStatusBody");
+      if (!ranking.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic font-bold">Jalankan seed_data.py untuk mengisi data contoh.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = ranking.map(p => {
+        const lc = labelColor[p.label] ?? { badge: "bg-slate-100 text-slate-500 border-slate-200", dot: "bg-slate-300" };
+        return `
+          <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4 font-extrabold text-slate-900">${p.pokja_nama}</td>
+            <td class="px-4 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-20 bg-slate-100 rounded-full h-2 flex-shrink-0">
+                  <div class="h-2 rounded-full bg-emerald-500 transition-all" style="width:${p.skor_total}%"></div>
                 </div>
-              </td>
-              <td class="p-6 text-xs font-bold text-slate-500">${p.skor_konsistensi?.toFixed(1) ?? "–"}</td>
-              <td class="p-6 text-xs font-bold text-slate-500">${p.skor_penyelesaian?.toFixed(1) ?? "–"}%</td>
-              <td class="p-6 text-center">
-                <span class="inline-flex items-center gap-2 px-4 py-1.5 border rounded-xl text-[9px] font-black uppercase tracking-wider ${lc.badge}">
-                  <span class="w-1.5 h-1.5 rounded-full ${lc.dot}"></span>${p.label}
-                </span>
-              </td>
-            </tr>`;
-        }).join('');
-      }
+                <span class="text-xs font-black text-slate-600">${p.skor_total.toFixed(1)}</span>
+              </div>
+            </td>
+            <td class="px-4 py-4 text-xs font-bold text-slate-500 hide-mobile">${p.skor_konsistensi?.toFixed(1) ?? "–"}</td>
+            <td class="px-4 py-4 text-xs font-bold text-slate-500 hide-mobile">${p.skor_penyelesaian?.toFixed(1) ?? "–"}%</td>
+            <td class="px-4 py-4 text-center">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[9px] font-black uppercase tracking-wider ${lc.badge}">
+                <span class="w-1.5 h-1.5 rounded-full ${lc.dot}"></span>${p.label}
+              </span>
+            </td>
+          </tr>`;
+      }).join('');
+    }
 
-      function refreshAll() {
-        document.getElementById("stat-pokja").innerHTML    = '<span class="skeleton inline-block w-12 h-8">&nbsp;</span>';
-        document.getElementById("stat-kegiatan").innerHTML = '<span class="skeleton inline-block w-12 h-8">&nbsp;</span>';
-        document.getElementById("stat-teraktif").innerHTML = '<span class="skeleton inline-block w-32 h-6">&nbsp;</span>';
-        loadDashboard();
-      }
-
+    function refreshAll() {
+      document.getElementById("stat-pokja").innerHTML    = '<span class="skeleton inline-block w-12 h-8">&nbsp;</span>';
+      document.getElementById("stat-kegiatan").innerHTML = '<span class="skeleton inline-block w-12 h-8">&nbsp;</span>';
+      document.getElementById("stat-teraktif").innerHTML = '<span class="skeleton inline-block w-32 h-6">&nbsp;</span>';
+      document.getElementById("rankingList").innerHTML   = '<div class="skeleton h-14 w-full"></div><div class="skeleton h-14 w-full"></div><div class="skeleton h-14 w-full"></div>';
+      document.getElementById("insightList").innerHTML   = '<div class="skeleton h-8 w-full opacity-20"></div><div class="skeleton h-8 w-3/4 opacity-20"></div>';
+      showToast("Memuat ulang data...", "info");
       loadDashboard();
-    </script>
-  </body>
+    }
+
+    loadDashboard();
+  </script>
+</body>
 </html>
