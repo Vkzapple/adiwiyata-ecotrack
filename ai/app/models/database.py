@@ -158,8 +158,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = (
-    f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
-    f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME')}"
+    f"mysql+pymysql://{os.getenv('MYSQLUSER')}:{os.getenv('MYSQLPASSWORD')}"
+    f"@{os.getenv('MYSQLHOST')}:{os.getenv('MYSQLPORT', '3306')}/{os.getenv('MYSQLDATABASE')}"
 )
 
 engine = create_engine(DATABASE_URL)

@@ -6,6 +6,7 @@
   <title>Dashboard - Panel Pokja Adiwiyata</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/config.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
@@ -305,7 +306,7 @@
   </div>
 
   <script>
-    const AI_URL = "http://192.168.1.17:3001/api/ai";
+    const AI_URL = "https://adiwiyata-ecotrack-production.up.railway.app/api/ai";
     let chartInstance = null;
 
     // ── Sidebar toggle ──────────────────────────────────────────────
