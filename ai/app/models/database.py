@@ -102,23 +102,22 @@ class Dokumentasi(Base):
     def __repr__(self):
         return f"<Dokumentasi(id={self.id}, stored_name='{self.stored_name}')>"
 
-
 class Laporan(Base):
-    """
-    Laporan resmi yang di-generate oleh sistem untuk tiap kegiatan.
-    Isi paragraf di-generate otomatis oleh Auto Report Generator.
-    """
     __tablename__ = "laporan"
 
-    id              = Column(Integer, primary_key=True, index=True)
-    kegiatan_id     = Column(Integer, ForeignKey("kegiatan.id"), nullable=True, unique=True)
-    pokja_id        = Column(Integer, ForeignKey("pokja.id"), nullable=False)
-    judul           = Column(String(300), nullable=False)
-    konten          = Column(Text, nullable=False)           # paragraf hasil generate
-    template_used   = Column(String(100), nullable=True)    # nama template yang dipakai
-    is_auto_generated = Column(Boolean, default=True)
-    created_at      = Column(DateTime, default=func.now())
-    updated_at      = Column(DateTime, default=func.now(), onupdate=func.now())
+    id               = Column(Integer, primary_key=True, index=True)
+    kegiatan_id      = Column(Integer, ForeignKey("kegiatan.id"), nullable=True, unique=True)
+    pokja_id         = Column(Integer, ForeignKey("pokja.id"), nullable=False)
+    judul            = Column(String(300), nullable=False)
+    konten           = Column(Text, nullable=False)
+    template_used    = Column(String(100), nullable=True)
+    is_auto_generated= Column(Boolean, default=True)
+    status_approve   = Column(String(20), default="pending")
+    catatan_pengawas = Column(Text, nullable=True)
+    approved_by      = Column(Integer, nullable=True)
+    approved_at      = Column(DateTime, nullable=True)
+    created_at       = Column(DateTime, default=func.now())
+    updated_at       = Column(DateTime, default=func.now(), onupdate=func.now())
 
     kegiatan        = relationship("Kegiatan", back_populates="laporan")
     pokja           = relationship("Pokja", back_populates="laporan")
@@ -153,7 +152,15 @@ class SkorPokja(Base):
 
 # ─── DB Setup ─────────────────────────────────────────────────────────────────
 
-DATABASE_URL = "mysql+pymysql://root:@127.0.0.1/adiwiyata"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = (
+    f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
+    f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME')}"
+)
 
 engine = create_engine(DATABASE_URL)
 

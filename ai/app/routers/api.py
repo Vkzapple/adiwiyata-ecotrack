@@ -16,6 +16,7 @@ from app.services.behavior_analysis import BehaviorAnalyzer, cluster_pokja
 from app.services.report_generator import generate_laporan
 
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # POKJA ROUTER
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -207,11 +208,44 @@ def list_laporan(
     limit   : int = 20,
     db      : Session = Depends(get_db)
 ):
-    """Ambil daftar laporan."""
     q = db.query(Laporan)
     if pokja_id:
         q = q.filter(Laporan.pokja_id == pokja_id)
-    return q.order_by(Laporan.created_at.desc()).limit(limit).all()
+    laporan_list = q.order_by(Laporan.created_at.desc()).limit(limit).all()
+    
+    # Attach foto dokumentasi ke setiap laporan
+    result = []
+    for l in laporan_list:
+        l_dict = {
+            "id"               : l.id,
+            "kegiatan_id"      : l.kegiatan_id,
+            "pokja_id"         : l.pokja_id,
+            "judul"            : l.judul,
+            "konten"           : l.konten,
+            "is_auto_generated": l.is_auto_generated,
+            "created_at"       : l.created_at,
+            "status_approve"   : l.status_approve or "pending",
+            "catatan_pengawas" : l.catatan_pengawas,
+            "approved_by"      : l.approved_by,
+            "foto"             : [],
+        }
+        # Ambil foto dari tabel dokumentasi
+        if l.kegiatan_id:
+            from app.models.database import Dokumentasi
+            docs = db.query(Dokumentasi).filter(
+                Dokumentasi.kegiatan_id == l.kegiatan_id
+            ).all()
+            l_dict["foto"] = [
+                {
+                    "id"         : d.id,
+                    "stored_name": d.stored_name,
+                    "file_path"  : d.file_path,
+                    "url"        : f"/uploads/{d.kegiatan_id}/{d.stored_name}",
+                }
+                for d in docs
+            ]
+        result.append(l_dict)
+    return result
 
 @router_laporan.get("/{laporan_id}", response_model=LaporanResponse)
 def get_laporan(laporan_id: int, db: Session = Depends(get_db)):

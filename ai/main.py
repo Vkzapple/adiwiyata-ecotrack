@@ -8,6 +8,7 @@ from app.models.database import create_tables
 from app.routers.api import router_pokja, router_kegiatan, router_laporan, router_analytics
 
 
+
 # ─── App Lifecycle ────────────────────────────────────────────────────────────
 
 @asynccontextmanager

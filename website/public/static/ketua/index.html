@@ -389,8 +389,8 @@
     </div>
 
     <script>
-        const API_URL = "http://192.168.8.101:3001/api";
-        const AI_URL  = "http://192.168.8.101:3001/api/ai";
+        const API_URL = "http://192.168.1.17:3001/api";
+        const AI_URL  = "http://192.168.1.17:3001/api/ai";
         const user    = JSON.parse(localStorage.getItem('user') || '{}');
         let currentPokjaId = null;
 
@@ -439,7 +439,7 @@
 
         async function loadPokjaId(namaPokja) {
             try {
-                const res  = await fetch(`${API_URL}/pokja`);
+                const res  = await fetch(`${API_URL}/pokja`, { cache: 'no-store' });
                 const list = await res.json();
                 let found = list.find(p => (p.nama || p.name || '').toLowerCase() === namaPokja.toLowerCase());
                 if (!found) {
@@ -523,7 +523,7 @@
                 const url = currentPokjaId
                     ? `http://localhost:8000/laporan/?pokja_id=${currentPokjaId}`
                     : `http://localhost:8000/laporan/`;
-                const res  = await fetch(url);
+                const res  = await fetch(url, { cache: 'no-store' });
                 const data = await res.json();
 
                 if (!data.length) {

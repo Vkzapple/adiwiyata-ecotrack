@@ -295,8 +295,8 @@
     </div>
 
     <script>
-        const API_URL = "http://10.127.194.221:3001/api";
-        const AI_URL  = "http://10.127.194.221:3001/api/ai";
+        const API_URL = "http://192.168.1.17:3001/api";
+        const AI_URL  = "http://192.168.1.17:3001/api/ai";
         const user    = JSON.parse(localStorage.getItem('user') || '{}');
         let currentReviewId = null;
 
@@ -359,7 +359,8 @@
         // ── Load Stats ────────────────────────────────────────────────────────
         async function loadStats() {
             try {
-                const res  = await fetch(`${API_URL}/laporan/`);
+                
+                const res = await fetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
                 const data = await res.json();
                 const pending  = data.filter(l => (l.status_approve || 'pending') === 'pending').length;
                 const approved = data.filter(l => l.status_approve === 'approved').length;
@@ -378,7 +379,8 @@
             const el = document.getElementById('laporanPending');
             el.innerHTML = '<div class="skeleton h-48 w-full"></div><div class="skeleton h-48 w-full mt-4"></div>';
             try {
-                const res     = await fetch(`${API_URL}/laporan/`);
+                const res = await fetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
+
                 const data    = await res.json();
                 const pending = data.filter(l => (l.status_approve || 'pending') === 'pending');
                 if (!pending.length) {
@@ -401,7 +403,7 @@
             const el = document.getElementById('laporanSemua');
             el.innerHTML = '<div class="skeleton h-48 w-full"></div>';
             try {
-                const res  = await fetch(`${API_URL}/laporan/`);
+                const res = await fetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
                 const data = await res.json();
                 if (!data.length) {
                     el.innerHTML = '<div class="text-center p-12 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold">Belum ada laporan.</div>';
@@ -509,28 +511,82 @@
             currentReviewId = null;
         }
 
-        async function submitReview(action) {
-            if (!currentReviewId) return;
-            const catatan = document.getElementById('catatanPengawas').value.trim();
-            try {
-                const res = await fetch(`${API_URL}/laporan/${currentReviewId}/review`, {
-                    method : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body   : JSON.stringify({ status_approve: action, catatan_pengawas: catatan || null, approved_by: user.id })
-                });
-                if (res.ok) {
-                    showToast(action === 'approved' ? 'Laporan berhasil disetujui!' : 'Laporan dikembalikan untuk revisi.');
-                    closeReviewModal();
-                    loadPendingLaporan();
-                    loadStats();
-                } else {
-                    const err = await res.json();
-                    showToast(err.message || 'Gagal memproses.', 'error');
-                }
-            } catch(e) {
-                showToast('Gagal terhubung ke server.', 'error');
+     async function submitReview(action) {
+    if (!currentReviewId) return;
+    const catatan = document.getElementById('catatanPengawas').value.trim();
+    
+    // Disable tombol biar tidak double-click
+    document.querySelectorAll('#reviewModal button').forEach(b => b.disabled = true);
+    
+    try {
+        const res = await fetch(`${API_URL}/laporan/${currentReviewId}/review`, {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body   : JSON.stringify({ 
+                status_approve   : action, 
+                catatan_pengawas : catatan || null, 
+                approved_by      : user.id 
+            })
+        });
+
+        if (res.ok) {
+            closeReviewModal();
+            showToast(action === 'approved' 
+                ? '✅ Laporan berhasil disetujui!' 
+                : '↩️ Laporan dikembalikan untuk revisi.');
+
+            // Tunggu DB commit — lebih panjang
+            await new Promise(r => setTimeout(r, 1200));
+
+            // Reset tampilan dulu ke skeleton
+            document.getElementById('laporanPending').innerHTML = 
+                '<div class="skeleton h-48 w-full"></div>';
+
+            // Fetch ulang dengan timestamp baru
+            const t = Date.now();
+            const [statsRes, pendingRes] = await Promise.all([
+                fetch(`${API_URL}/laporan/?t=${t}`,     { cache: 'no-store' }),
+                fetch(`${API_URL}/laporan/?t=${t + 1}`, { cache: 'no-store' }),
+            ]);
+
+            const statsData   = await statsRes.json();
+            const pendingData = await pendingRes.json();
+
+            // Update stats
+            const pending  = statsData.filter(l => (l.status_approve || 'pending') === 'pending').length;
+            const approved = statsData.filter(l => l.status_approve === 'approved').length;
+            const rejected = statsData.filter(l => l.status_approve === 'rejected').length;
+            document.getElementById('stat-pending').innerText  = pending;
+            document.getElementById('stat-approved').innerText = approved;
+            document.getElementById('stat-rejected').innerText = rejected;
+            const badge = document.getElementById('badge-menunggu');
+            if (pending > 0) { badge.innerText = pending; badge.classList.remove('hidden'); }
+            else { badge.classList.add('hidden'); }
+
+            // Update list pending
+            const pendingList = pendingData.filter(l => (l.status_approve || 'pending') === 'pending');
+            const el = document.getElementById('laporanPending');
+            if (!pendingList.length) {
+                el.innerHTML = `
+                    <div class="text-center p-16 border-2 border-dashed border-emerald-100 rounded-[2rem] bg-emerald-50/50">
+                        <i class="fas fa-check-circle text-emerald-400 text-4xl mb-4"></i>
+                        <p class="text-emerald-600 font-extrabold text-lg">Semua laporan sudah ditinjau!</p>
+                        <p class="text-emerald-500 text-sm mt-1">Tidak ada laporan yang menunggu persetujuan.</p>
+                    </div>`;
+            } else {
+                el.innerHTML = pendingList.map(l => renderLaporanCard(l, true)).join('');
             }
+
+        } else {
+            const err = await res.json();
+            showToast(err.message || 'Gagal memproses.', 'error');
         }
+    } catch(e) {
+        showToast('Gagal terhubung ke server.', 'error');
+    } finally {
+        document.querySelectorAll('#reviewModal button').forEach(b => b.disabled = false);
+    }
+}
 
         // ── Helpers ───────────────────────────────────────────────────────────
         function refreshAll() {

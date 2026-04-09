@@ -15,12 +15,14 @@ app.use(
 );
 app.use(express.static(path.join(__dirname, "..", "website", "public")));
 
-// 2) Use a connection pool (mysql2/promise)
+require('dotenv').config();
+
 const pool = mysql.createPool({
-    host: "127.0.0.1",
-    user: "root",
-    password: "",
-    database: "adiwiyata",
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -140,7 +142,7 @@ async function testDbConnection() {
         if (conn) conn.release();
     }
 }
-const AI_URL = "http://10.230.7.119:8000";
+const AI_URL = process.env.AI_URL || "http://127.0.0.1:8000";
 // Helper function
 async function fetchAI(path, options = {}) {
     const response = await fetch(`${AI_URL}${path}`, options);
@@ -212,6 +214,35 @@ app.post("/api/laporan/:id/review", async (req, res) => {
     } catch(err) {
         console.error(err);
         res.status(500).json({ message: "Gagal memperbarui laporan" });
+    }
+});
+// GET semua laporan (proxy ke Python)
+app.get("/api/laporan/", async (req, res) => {
+    try {
+        const data = await fetchAI("/laporan/"); 
+        res.json(data);
+    } catch(err) {
+        res.status(503).json({ message: "AI service tidak tersedia" });
+    }
+})
+
+// GET kegiatan semua (proxy ke Python)
+app.get("/api/kegiatan/", async (req, res) => {
+    try {
+        const data = await fetchAI("/kegiatan/");
+        res.json(data);
+    } catch(err) {
+        res.status(503).json({ message: "AI service tidak tersedia" });
+    }
+});
+
+// GET pokja semua (proxy ke Python)
+app.get("/api/pokja", async (req, res) => {
+    try {
+        const data = await fetchAI("/pokja/");  // ← pakai fetchAI
+        res.json(data);
+    } catch(err) {
+        res.status(503).json({ message: "AI service tidak tersedia" });
     }
 });
 

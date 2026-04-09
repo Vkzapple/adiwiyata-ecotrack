@@ -117,6 +117,9 @@ class LaporanResponse(BaseModel):
     konten           : str
     is_auto_generated: bool
     created_at       : datetime
+    status_approve   : Optional[str] = "pending"
+    catatan_pengawas : Optional[str] = None
+    approved_by      : Optional[int] = None
 
     class Config:
         from_attributes = True

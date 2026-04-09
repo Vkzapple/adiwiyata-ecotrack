@@ -208,7 +208,7 @@
                 <div id="ai-ranking-container"></div>
 
                 <!-- DB info banner -->
-                <div class="bg-slate-900 rounded-[1.75rem] p-6 sm:p-10 text-white flex flex-col sm:flex-row items-start sm:items-center gap-6 relative overflow-hidden shadow-2xl">
+                <!-- <div class="bg-slate-900 rounded-[1.75rem] p-6 sm:p-10 text-white flex flex-col sm:flex-row items-start sm:items-center gap-6 relative overflow-hidden shadow-2xl">
                     <div class="z-10">
                         <h4 class="text-xl sm:text-2xl font-bold mb-2">Koneksi Database Aktif</h4>
                         <p class="text-slate-400 text-sm max-w-lg leading-relaxed">
@@ -220,7 +220,7 @@
                             <i class="fas fa-link mr-2"></i> localhost:3000
                         </span>
                     </div>
-                </div>
+                </div> -->
             </section>
 
             <!-- ── TAB: USERS ── -->
@@ -369,8 +369,8 @@
     </div>
 
     <script>
-        const API_URL = "http://192.168.8.101:3001/api";
-        const AI_URL  = "http://192.168.8.101:3001/api/ai";
+        const API_URL = "http://192.168.1.17:3001/api";
+        const AI_URL  = "http://192.168.1.17:3001/api/ai";
 
         // ── Hamburger ─────────────────────────────────────────────────────────
         function openSidebar() {
@@ -458,7 +458,7 @@
             container.innerHTML = `
                 <div class="bg-white rounded-[1.75rem] border border-slate-100 shadow-xl p-5 sm:p-8 space-y-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">🤖 AI Behavior Analysis</h3>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900"> AI Behavior Analysis</h3>
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ranking Pokja</span>
                     </div>
                     <div class="space-y-3">
