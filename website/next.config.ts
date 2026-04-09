@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+const nextConfig = {
+  experimental: {
+    reactCompiler: false,
+  },
 };
 
 export default nextConfig;
