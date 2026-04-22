@@ -474,7 +474,7 @@
             const tbody = document.getElementById('leaderActivityTable');
             tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>';
             try {
-                const res  = await fetch(`http://localhost:8000/kegiatan/${currentPokjaId ? '?pokja_id='+currentPokjaId : ''}`);
+                const res  = await fetch(`${API_URL}/kegiatan/${currentPokjaId ? '?pokja_id='+currentPokjaId : ''}`, { cache: 'no-store' });
                 const data = await res.json();
                 document.getElementById('activityCount').innerText = data.length;
 
@@ -521,8 +521,8 @@
             el.innerHTML = '<div class="skeleton h-32 w-full"></div><div class="skeleton h-32 w-full mt-4"></div>';
             try {
                 const url = currentPokjaId
-                    ? `http://localhost:8000/laporan/?pokja_id=${currentPokjaId}`
-                    : `http://localhost:8000/laporan/`;
+                    ? `${API_URL}/laporan/?pokja_id=${currentPokjaId}`
+                    : `${API_URL}/laporan/`;
                 const res  = await fetch(url, { cache: 'no-store' });
                 const data = await res.json();
 
@@ -662,7 +662,7 @@
             }
 
             try {
-                const resK = await fetch('http://localhost:8000/kegiatan/', {
+                const resK = await fetch(`${API_URL}/ai/kegiatan`, {
                     method : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body   : JSON.stringify({
@@ -680,7 +680,7 @@
                 const kegiatan = await resK.json();
 
                 if (doGenerate) {
-                    const resL = await fetch('http://localhost:8000/laporan/generate', {
+                    const resL = await fetch(`${API_URL}/ai/laporan/generate`, {
                         method : 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body   : JSON.stringify({
@@ -851,7 +851,7 @@
                 formData.append('kegiatan_id', kegiatanId);
                 formData.append('deskripsi', `Dokumentasi ${idx + 1}`);
                 try {
-                    const res = await fetch('http://localhost:8000/dokumentasi/upload', { method: 'POST', body: formData });
+                    const res = await fetch(`${API_URL}/ai/dokumentasi/upload`, { method: 'POST', body: formData });
                     return res.ok;
                 } catch(e) { console.error('Upload foto gagal:', e); return false; }
             }));
@@ -861,10 +861,10 @@
         async function generateLaporanSingle(kegiatanId) {
             showToast('Membuat laporan...', 'info');
             try {
-                const resK = await fetch(`http://localhost:8000/kegiatan/${kegiatanId}`);
+                const resK = await fetch(`${API_URL}/kegiatan/${kegiatanId}`);
                 if (!resK.ok) { showToast('Kegiatan tidak ditemukan.', 'error'); return; }
                 const k = await resK.json();
-                const res = await fetch('http://localhost:8000/laporan/generate', {
+                const res = await fetch(`${API_URL}/ai/laporan/generate`, {
                     method : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body   : JSON.stringify({
@@ -896,7 +896,7 @@
         async function deleteKegiatan(id) {
             if (!confirm('Hapus kegiatan ini?')) return;
             try {
-                await fetch(`http://localhost:8000/kegiatan/${id}`, { method: 'DELETE' });
+                await fetch(`${API_URL}/kegiatan/${id}`, { method: 'DELETE' });
                 showToast('Kegiatan berhasil dihapus.');
                 loadKegiatan();
             } catch(e) { showToast('Gagal menghapus.', 'error'); }

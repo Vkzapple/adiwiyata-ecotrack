@@ -81,11 +81,14 @@ app.post("/api/register", async (req, res) => {
             .status(400)
             .json({ message: "Name, email, dan password wajib diisi" });
 
+    // Sanitize pokja — jangan simpan string "undefined" atau kosong
+    const cleanPokja = (pokja && pokja !== "undefined") ? pokja : null;
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         await query(
             "INSERT INTO users (name, email, password, role, pokja) VALUES (?, ?, ?, ?, ?)",
-            [name, email, hashedPassword, role, pokja],
+            [name, email, hashedPassword, role || "ketua", cleanPokja],
         );
         res.status(201).json({ message: "User berhasil dibuat" });
     } catch (err) {
@@ -119,16 +122,6 @@ app.delete("/api/users/:id", async (req, res) => {
     }
 });
 
-app.get("/api/pokja", async (req, res) => {
-    try {
-        const pokja = await query("SELECT * FROM pokja");
-        res.json(pokja);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Gagal mengambil data pokja" });
-    }
-});
-
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 // --- New: health-check DB before starting server ---
@@ -143,7 +136,6 @@ async function testDbConnection() {
     }
 }
 const AI_URL = process.env.AI_URL || "http://127.0.0.1:8000";
-// Helper function
 async function fetchAI(path, options = {}) {
     const response = await fetch(`${AI_URL}${path}`, options);
     return response.json();
@@ -229,8 +221,47 @@ app.get("/api/laporan/", async (req, res) => {
 // GET kegiatan semua (proxy ke Python)
 app.get("/api/kegiatan/", async (req, res) => {
     try {
-        const data = await fetchAI("/kegiatan/");
+        const qs = req.query.pokja_id ? `?pokja_id=${req.query.pokja_id}` : "";
+        const data = await fetchAI(`/kegiatan/${qs}`);
         res.json(data);
+    } catch(err) {
+        res.status(503).json({ message: "AI service tidak tersedia" });
+    }
+});
+
+// GET kegiatan by id (proxy ke Python)
+app.get("/api/kegiatan/:id", async (req, res) => {
+    try {
+        const data = await fetchAI(`/kegiatan/${req.params.id}`);
+        res.json(data);
+    } catch(err) {
+        res.status(503).json({ message: "AI service tidak tersedia" });
+    }
+});
+
+// DELETE kegiatan (proxy ke Python)
+app.delete("/api/kegiatan/:id", async (req, res) => {
+    try {
+        const data = await fetchAI(`/kegiatan/${req.params.id}`, { method: "DELETE" });
+        res.json(data);
+    } catch(err) {
+        res.status(503).json({ message: "AI service tidak tersedia" });
+    }
+});
+
+// POST dokumentasi upload (proxy ke Python, multipart passthrough)
+app.post("/api/ai/dokumentasi/upload", async (req, res) => {
+    try {
+        const fetch = (await import("node-fetch")).default;
+        const FormData = (await import("form-data")).default;
+        // Re-stream body as-is to Python
+        const response = await fetch(`${AI_URL}/dokumentasi/upload`, {
+            method: "POST",
+            headers: req.headers,
+            body: req,
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
     } catch(err) {
         res.status(503).json({ message: "AI service tidak tersedia" });
     }
