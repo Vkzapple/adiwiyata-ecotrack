@@ -507,7 +507,7 @@
                         <h4 class="font-extrabold text-slate-900 text-base mb-1">${u.name}</h4>
                         <p class="text-sm text-slate-400 mb-5 font-medium">${u.email}</p>
                         <div class="pt-4 border-t border-slate-50 flex justify-between items-center">
-                            <span class="text-xs text-slate-600 font-bold">Pokja: ${u.pokja ?? '–'}</span>
+<span class="text-xs text-slate-600 font-bold">Pokja: ${u.pokja && u.pokja !== 'undefined' ? u.pokja : '–'}</span>
                             <button onclick="deleteUser(${u.id})" class="text-slate-300 hover:text-rose-500 transition-colors">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
@@ -578,13 +578,12 @@
                 const pokjaList = await pokjaRes.json();
                 const userList  = await usersRes.json();
                 const pokjaSudahAdaKetua = new Set(
-                    userList.filter(u => u.role === 'Ketua Pokja' && u.pokja).map(u => u.pokja)
-                );
-                const pokjaTersedia = pokjaList.filter(p => !pokjaSudahAdaKetua.has(p.name));
-                if (pokjaTersedia.length === 0) {
-                    select.innerHTML = '<option value="">Semua pokja sudah ada ketuanya</option>';
-                    return;
-                }
+    userList.filter(u => u.role === 'Ketua Pokja' && u.pokja).map(u => u.pokja)
+);
+               const pokjaTersedia = pokjaList.filter(p => {
+    const nama = p.nama || p.name || '';
+    return !pokjaSudahAdaKetua.has(nama);
+});
                 select.innerHTML = '<option value="">Pilih Pokja</option>' +
                     pokjaTersedia.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
             } catch(e) {

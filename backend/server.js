@@ -60,14 +60,15 @@ app.post("/api/login", async (req, res) => {
         if (!match) return res.status(401).json({ message: "Password salah" });
 
         res.json({
-            message: "Login Berhasil",
-            user: {
-                id: user.id,
-                name: user.name,
-                role: user.role,
-                pokja: user.pokja,
-            },
-        });
+    message: "Login Berhasil",
+    user: {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        // Sanitize: jangan return empty string
+        pokja: (user.pokja && user.pokja !== 'undefined') ? user.pokja : null,
+    },
+});
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Kesalahan Server" });
