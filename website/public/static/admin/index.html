@@ -4,91 +4,40 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin - Panel Kendali Utama</title>
-    <script src="https://cdn.tailwindcss.com"></script>`
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
-
         body { font-family: "Plus Jakarta Sans", sans-serif; background-color: #f8fafc; color: #1e293b; }
-
-        .sidebar-link.active {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
-        }
+        .sidebar-link.active { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2); }
         .sidebar-link.active i { color: white !important; opacity: 1; }
-
         .card-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
         .modal-active { display: flex !important; }
-
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
         .fade-up { animation: fadeUp 0.5s ease-out forwards; }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: #10b981 !important;
-            box-shadow: 0 0 0 4px rgba(16,185,129,0.1);
-        }
-
-        /* ── Sidebar mobile ── */
-        #sidebar {
-            position: fixed;
-            top: 0; left: 0;
-            height: 100%;
-            width: 280px;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            z-index: 40;
-        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input:focus, select:focus, textarea:focus { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,0.1); }
+        #sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 280px; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 40; }
         #sidebar.open { transform: translateX(0); }
-
-        /* ── Desktop sidebar ── */
         @media (min-width: 768px) {
-            #sidebar {
-                position: sticky;
-                top: 0;
-                transform: translateX(0);
-                width: 288px;
-                height: 100vh;
-            }
+            #sidebar { position: sticky; top: 0; transform: translateX(0); width: 288px; height: 100vh; }
             #sidebarOverlay { display: none !important; }
-            #mobileTopbar   { display: none !important; }
+            #mobileTopbar { display: none !important; }
         }
-
-        /* ── Overlay ── */
-        #sidebarOverlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15,23,42,0.45);
-            backdrop-filter: blur(2px);
-            z-index: 30;
-        }
+        #sidebarOverlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(2px); z-index: 30; }
         #sidebarOverlay.open { display: block; }
-
-        /* ── Mobile topbar ── */
         #mobileTopbar { position: sticky; top: 0; z-index: 20; }
-
-        /* ── Popup confirm ── */
         .popup-confirm { animation: popIn 0.2s ease-out; }
         @keyframes popIn { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
-
-        /* ── Table responsive ── */
         @media (max-width: 640px) { .hide-mobile { display: none; } }
     </style>
 </head>
 <body class="min-h-screen bg-[#f8fafc]">
 
-    <!-- ───── SIDEBAR OVERLAY (mobile) ───── -->
     <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- ───── MOBILE TOPBAR ───── -->
     <header id="mobileTopbar" class="bg-white border-b border-slate-100 shadow-sm flex items-center gap-3 px-4 py-3">
         <button onclick="openSidebar()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all flex-shrink-0">
             <i class="fas fa-bars text-sm"></i>
@@ -106,12 +55,8 @@
         </div>
     </header>
 
-    <!-- ───── WRAPPER ───── -->
     <div class="flex min-h-screen">
-
-        <!-- ───── SIDEBAR ───── -->
         <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col shadow-2xl md:shadow-none">
-            <!-- Header Sidebar -->
             <div class="p-6 md:p-8 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="relative">
@@ -127,13 +72,11 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Management v1.0</p>
                     </div>
                 </div>
-                <!-- Close button mobile -->
                 <button onclick="closeSidebar()" class="md:hidden w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
 
-            <!-- Admin badge -->
             <div class="mx-4 mb-2 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-emerald-400 font-black text-sm flex-shrink-0">A</div>
                 <div class="min-w-0">
@@ -142,7 +85,6 @@
                 </div>
             </div>
 
-            <!-- Navigation -->
             <nav class="mt-4 px-4 space-y-1 flex-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-3 px-3">Main Menu</p>
                 <button onclick="switchTab('dashboard'); closeSidebar();" id="nav-dashboard"
@@ -159,7 +101,6 @@
                 </button>
             </nav>
 
-            <!-- Keluar -->
             <div class="px-4 pb-6 pt-2 border-t border-slate-100 mt-2">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] mb-3 px-3 mt-3">Sistem</p>
                 <button onclick="openLogoutModal()" class="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group">
@@ -168,23 +109,20 @@
             </div>
         </aside>
 
-        <!-- ───── MAIN CONTENT ───── -->
         <main class="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto bg-[#f8fafc] min-w-0">
 
-            <!-- ── TAB: DASHBOARD ── -->
+            <!-- TAB: DASHBOARD -->
             <section id="section-dashboard" class="fade-up space-y-8">
                 <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Ringkasan Sistem</h2>
-                        <p class="text-slate-500 mt-1 text-sm">Data sinkronisasi dari MySQL database XAMPP.</p>
+                        <p class="text-slate-500 mt-1 text-sm">Data sinkronisasi dari Railway database.</p>
                     </div>
                     <button onclick="refreshData()"
                         class="inline-flex items-center self-start px-5 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl shadow-sm hover:bg-slate-50 transition-all active:scale-95 text-sm">
                         <i class="fas fa-sync-alt mr-2 text-emerald-500"></i> Refresh Data
                     </button>
                 </header>
-
-                <!-- Stat cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <div class="card-gradient p-6 sm:p-8 rounded-[1.75rem] text-white shadow-2xl relative overflow-hidden">
                         <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
@@ -203,27 +141,10 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- AI Ranking -->
                 <div id="ai-ranking-container"></div>
-
-                <!-- DB info banner -->
-                <!-- <div class="bg-slate-900 rounded-[1.75rem] p-6 sm:p-10 text-white flex flex-col sm:flex-row items-start sm:items-center gap-6 relative overflow-hidden shadow-2xl">
-                    <div class="z-10">
-                        <h4 class="text-xl sm:text-2xl font-bold mb-2">Koneksi Database Aktif</h4>
-                        <p class="text-slate-400 text-sm max-w-lg leading-relaxed">
-                            Seluruh data pengguna dan kegiatan diambil secara otomatis dari MySQL. Pastikan Service MySQL di XAMPP Control Panel sudah dalam posisi 'Running'.
-                        </p>
-                    </div>
-                    <div class="sm:ml-auto z-10 flex-shrink-0">
-                        <span class="px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 rounded-2xl font-bold text-sm inline-block">
-                            <i class="fas fa-link mr-2"></i> localhost:3000
-                        </span>
-                    </div>
-                </div> -->
             </section>
 
-            <!-- ── TAB: USERS ── -->
+            <!-- TAB: USERS -->
             <section id="section-users" class="hidden fade-up space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -238,7 +159,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="userGrid"></div>
             </section>
 
-            <!-- ── TAB: ACTIVITIES ── -->
+            <!-- TAB: ACTIVITIES -->
             <section id="section-activities" class="hidden fade-up space-y-6">
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Data Kegiatan</h2>
                 <div class="bg-white rounded-[1.75rem] border border-slate-100 shadow-xl overflow-hidden">
@@ -252,11 +173,7 @@
                                 </tr>
                             </thead>
                             <tbody id="adminActivityList">
-                                <tr>
-                                    <td colspan="3" class="p-16 text-center text-slate-400 italic text-sm">
-                                        Menunggu sinkronisasi data kegiatan...
-                                    </td>
-                                </tr>
+                                <tr><td colspan="3" class="p-16 text-center text-slate-400 italic text-sm">Menunggu sinkronisasi data kegiatan...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -266,12 +183,9 @@
         </main>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         MODAL BUAT AKUN BARU — RESPONSIVE
-    ════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL BUAT AKUN BARU -->
     <div id="userModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-start justify-center overflow-y-auto p-3 sm:p-6">
         <div class="bg-white w-full max-w-lg rounded-[1.75rem] shadow-2xl my-3 sm:my-8 overflow-hidden">
-            <!-- Header Modal -->
             <div class="px-5 sm:px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/70 sticky top-0 z-10">
                 <h3 class="text-base sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
@@ -283,23 +197,15 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-
             <form id="userForm" class="px-5 sm:px-8 py-6 space-y-4">
-                <!-- Nama -->
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Nama Lengkap</label>
-                    <input type="text" id="uName" required
-                        class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm"
-                        placeholder="Nama lengkap pengguna" />
+                    <input type="text" id="uName" required class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" placeholder="Nama lengkap pengguna" />
                 </div>
-                <!-- Email -->
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Email Sekolah</label>
-                    <input type="email" id="uEmail" required
-                        class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm"
-                        placeholder="email@sekolah.sch.id" />
+                    <input type="email" id="uEmail" required class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" placeholder="email@sekolah.sch.id" />
                 </div>
-                <!-- Pokja & Role -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Pilih Pokja</label>
@@ -315,39 +221,26 @@
                         </select>
                     </div>
                 </div>
-                <!-- Password -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Password</label>
-                        <input type="password" id="uPassword" required
-                            class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" />
+                        <input type="password" id="uPassword" required class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" />
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Konfirmasi</label>
-                        <input type="password" id="uConfirmPassword" required
-                            class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" />
+                        <input type="password" id="uConfirmPassword" required class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all font-semibold text-sm" />
                     </div>
                 </div>
-
-                <!-- Error -->
-                <p id="passwordError" class="hidden text-xs text-rose-500 font-bold bg-rose-50 p-3 rounded-xl text-center border border-rose-100">
-                    Konfirmasi password tidak cocok!
-                </p>
-
-                <!-- Tombol -->
+                <p id="passwordError" class="hidden text-xs text-rose-500 font-bold bg-rose-50 p-3 rounded-xl text-center border border-rose-100">Konfirmasi password tidak cocok!</p>
                 <div class="flex gap-3 pt-1">
                     <button type="button" onclick="closeUserModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black py-3.5 rounded-xl transition-all text-sm">BATAL</button>
-                    <button type="submit" class="flex-[2] py-3.5 bg-emerald-600 text-white font-black rounded-xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95 text-sm">
-                        SIMPAN PENGGUNA
-                    </button>
+                    <button type="submit" class="flex-[2] py-3.5 bg-emerald-600 text-white font-black rounded-xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95 text-sm">SIMPAN PENGGUNA</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         POPUP KONFIRMASI KELUAR
-    ════════════════════════════════════════════════════════════════ -->
+    <!-- POPUP KONFIRMASI KELUAR -->
     <div id="logoutModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="popup-confirm bg-white w-full max-w-sm rounded-[1.75rem] shadow-2xl overflow-hidden">
             <div class="bg-gradient-to-br from-rose-50 to-red-50 px-8 pt-8 pb-6 flex flex-col items-center text-center">
@@ -361,9 +254,7 @@
                 <button onclick="confirmLogout()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-black py-3.5 rounded-xl transition-all active:scale-95 text-sm shadow-lg shadow-rose-100">
                     <i class="fas fa-sign-out-alt mr-2"></i>Ya, Keluar Sekarang
                 </button>
-                <button onclick="closeLogoutModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-3.5 rounded-xl transition-all text-sm">
-                    Batal, Tetap di Sini
-                </button>
+                <button onclick="closeLogoutModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-3.5 rounded-xl transition-all text-sm">Batal, Tetap di Sini</button>
             </div>
         </div>
     </div>
@@ -372,7 +263,12 @@
         const API_URL = "https://adiwiyata-ecotrack-production.up.railway.app/api";
         const AI_URL  = "https://adiwiyata-ecotrack-production.up.railway.app/api/ai";
 
-        // ── Hamburger ─────────────────────────────────────────────────────────
+        // ── FIX: Helper normalize pokja name — handles both `nama` (Python) and `name` (MySQL) fields
+        function getPokjaName(p) {
+            return (p.nama || p.name || '').trim();
+        }
+
+        // ── Sidebar ───────────────────────────────────────────────────────────
         function openSidebar() {
             document.getElementById('sidebar').classList.add('open');
             document.getElementById('sidebarOverlay').classList.add('open');
@@ -397,7 +293,7 @@
             try {
                 const res = await fetch(`${API_URL}/health`, { cache: 'no-store' });
                 if (res.ok) {
-                    el.innerHTML = `<i class="fas fa-check-circle text-emerald-500 mr-2"></i><span class="text-emerald-600 font-bold text-xs">MYSQL CONNECTED</span>`;
+                    el.innerHTML = `<i class="fas fa-check-circle text-emerald-500 mr-2"></i><span class="text-emerald-600 font-bold text-xs">SERVER CONNECTED</span>`;
                     el.className = 'flex items-center mt-3 p-3 bg-emerald-50 rounded-2xl border border-emerald-100';
                 }
             } catch(e) {
@@ -410,7 +306,6 @@
         function switchTab(tabId) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.getElementById(`section-${tabId}`).classList.remove('hidden');
-
             document.querySelectorAll('.sidebar-link').forEach(btn => {
                 btn.classList.remove('active');
                 btn.classList.add('text-slate-500');
@@ -418,7 +313,6 @@
             const activeBtn = document.getElementById(`nav-${tabId}`);
             activeBtn.classList.add('active');
             activeBtn.classList.remove('text-slate-500');
-
             if (tabId === 'users')      renderUsers();
             if (tabId === 'activities') renderActivities();
             updateStats();
@@ -458,7 +352,7 @@
             container.innerHTML = `
                 <div class="bg-white rounded-[1.75rem] border border-slate-100 shadow-xl p-5 sm:p-8 space-y-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900"> AI Behavior Analysis</h3>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">🤖 AI Behavior Analysis</h3>
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ranking Pokja</span>
                     </div>
                     <div class="space-y-3">
@@ -488,7 +382,7 @@
         // ── Render Users ──────────────────────────────────────────────────────
         async function renderUsers() {
             const grid = document.getElementById('userGrid');
-            grid.innerHTML = '<div class="col-span-full py-16 text-center animate-pulse text-slate-400 italic font-bold text-sm">Mengambil data MySQL...</div>';
+            grid.innerHTML = '<div class="col-span-full py-16 text-center animate-pulse text-slate-400 italic font-bold text-sm">Mengambil data...</div>';
             try {
                 const res   = await fetch(`${API_URL}/users`);
                 const users = await res.json();
@@ -496,7 +390,10 @@
                     grid.innerHTML = `<div class="col-span-full p-10 text-center border-2 border-dashed border-slate-200 rounded-[1.75rem] text-slate-400 font-bold text-sm">Belum ada akun di database.</div>`;
                     return;
                 }
-                grid.innerHTML = users.map(u => `
+                grid.innerHTML = users.map(u => {
+                    // FIX: never display raw 'undefined' string or empty value
+                    const pokjaDisplay = (u.pokja && u.pokja !== 'undefined') ? u.pokja : '–';
+                    return `
                     <div class="bg-white p-6 rounded-[1.75rem] border border-slate-100 shadow-xl hover:-translate-y-1 transition-all duration-300">
                         <div class="flex justify-between items-start mb-5">
                             <div class="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-black text-lg shadow-lg">
@@ -507,12 +404,13 @@
                         <h4 class="font-extrabold text-slate-900 text-base mb-1">${u.name}</h4>
                         <p class="text-sm text-slate-400 mb-5 font-medium">${u.email}</p>
                         <div class="pt-4 border-t border-slate-50 flex justify-between items-center">
-<span class="text-xs text-slate-600 font-bold">Pokja: ${u.pokja && u.pokja !== 'undefined' ? u.pokja : '–'}</span>
+                            <span class="text-xs text-slate-600 font-bold">Pokja: ${pokjaDisplay}</span>
                             <button onclick="deleteUser(${u.id})" class="text-slate-300 hover:text-rose-500 transition-colors">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
             } catch(e) {
                 grid.innerHTML = `<div class="col-span-full p-8 bg-rose-50 text-rose-600 rounded-2xl font-bold text-center text-sm">Gagal memuat data dari server.</div>`;
             }
@@ -570,6 +468,7 @@
         // ── Pokja Options ─────────────────────────────────────────────────────
         async function loadPokjaOptions() {
             const select = document.getElementById('uPokja');
+            select.innerHTML = '<option value="">Memuat pokja...</option>';
             try {
                 const [pokjaRes, usersRes] = await Promise.all([
                     fetch(`${API_URL}/pokja`),
@@ -577,17 +476,36 @@
                 ]);
                 const pokjaList = await pokjaRes.json();
                 const userList  = await usersRes.json();
+
+                // FIX: build taken-pokja set using normalized lowercase names
+                // only exclude pokja where there's already a Ketua Pokja with a valid pokja value
                 const pokjaSudahAdaKetua = new Set(
-    userList.filter(u => u.role === 'Ketua Pokja' && u.pokja).map(u => u.pokja)
-);
-               const pokjaTersedia = pokjaList.filter(p => {
-    const nama = p.nama || p.name || '';
-    return !pokjaSudahAdaKetua.has(nama);
-});
+                    userList
+                        .filter(u => u.role === 'Ketua Pokja' && u.pokja && u.pokja !== 'undefined')
+                        .map(u => u.pokja.trim().toLowerCase())
+                );
+
+                // FIX: use getPokjaName() to handle both `nama` (Python) and `name` (MySQL) fields
+                const pokjaTersedia = pokjaList.filter(p => {
+                    const nama = getPokjaName(p).toLowerCase();
+                    return nama !== '' && !pokjaSudahAdaKetua.has(nama);
+                });
+
+                if (pokjaTersedia.length === 0) {
+                    select.innerHTML = '<option value="">Semua pokja sudah memiliki ketua</option>';
+                    return;
+                }
+
+                // FIX: value uses getPokjaName() — guaranteed never undefined
                 select.innerHTML = '<option value="">Pilih Pokja</option>' +
-                    pokjaTersedia.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                    pokjaTersedia.map(p => {
+                        const nama = getPokjaName(p);
+                        return `<option value="${nama}">${nama}</option>`;
+                    }).join('');
+
             } catch(e) {
-                select.innerHTML = '<option value="">Gagal memuat</option>';
+                console.error('Gagal load pokja:', e);
+                select.innerHTML = '<option value="">Gagal memuat pokja</option>';
             }
         }
 
@@ -609,19 +527,29 @@
 
         document.getElementById('userForm').onsubmit = async (e) => {
             e.preventDefault();
-            const pass = document.getElementById('uPassword').value;
+            const pass  = document.getElementById('uPassword').value;
+            const pokja = document.getElementById('uPokja').value;
             document.getElementById('passwordError').classList.add('hidden');
+
             if (pass !== document.getElementById('uConfirmPassword').value) {
                 document.getElementById('passwordError').classList.remove('hidden');
                 return;
             }
+
+            // FIX: guard pokja selection before submit
+            if (!pokja) {
+                alert('Pilih pokja terlebih dahulu.');
+                return;
+            }
+
             const userData = {
-                name    : document.getElementById('uName').value,
-                email   : document.getElementById('uEmail').value,
-                pokja   : document.getElementById('uPokja').value,
+                name    : document.getElementById('uName').value.trim(),
+                email   : document.getElementById('uEmail').value.trim(),
+                pokja   : pokja,   // guaranteed non-empty string
                 role    : document.getElementById('uRole').value,
                 password: pass,
             };
+
             try {
                 const res = await fetch(`${API_URL}/register`, {
                     method : 'POST',
