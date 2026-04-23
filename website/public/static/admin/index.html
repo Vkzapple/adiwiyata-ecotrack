@@ -209,7 +209,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Pilih Pokja</label>
-                        <select id="uPokja" class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm text-slate-700">
+                        <select id="uPokja"class="w-full px-4 py-3 sm:py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm text-slate-700">
                             <option value="">Memuat...</option>
                         </select>
                     </div>
@@ -536,11 +536,6 @@
                 return;
             }
 
-            // FIX: guard pokja selection before submit
-            if (!pokja) {
-                alert('Pilih pokja terlebih dahulu.');
-                return;
-            }
 
             const userData = {
                 name    : document.getElementById('uName').value.trim(),
