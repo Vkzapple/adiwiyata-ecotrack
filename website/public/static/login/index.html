@@ -8,19 +8,70 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: radial-gradient(circle at top right, #065f46, #064e3b, #022c22); color: #1e293b; overflow-y: auto; overflow-x: hidden; }
-        .scroll-container { min-height: 125vh; display: flex; align-items: center; justify-content: center; padding: 40px 24px; position: relative; }
-        .glass-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); }
-        .input-focus-effect:focus-within { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(16,185,129,0.1); }
-        @keyframes leafFloat { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-10px) rotate(10deg)} }
-        .float-icon { animation: leafFloat 3s ease-in-out infinite; }
-        .btn-gradient { background: linear-gradient(135deg,#10b981 0%,#059669 100%); transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
-        .btn-gradient:hover { box-shadow: 0 15px 30px -10px rgba(5,150,105,0.4); transform: translateY(-2px); }
-        body::-webkit-scrollbar { width: 6px; }
-        body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #064e3b;
+            background: radial-gradient(circle at top right, #065f46, #064e3b, #022c22);
+            color: #1e293b;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .scroll-container {
+            min-height: 125vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            position: relative;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-focus-effect:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.1);
+        }
+
+        @keyframes leafFloat {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-10px) rotate(10deg); }
+        }
+
+        .float-icon {
+            animation: leafFloat 3s ease-in-out infinite;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-gradient:hover {
+            box-shadow: 0 15px 30px -10px rgba(5, 150, 105, 0.4);
+            transform: translateY(-2px);
+        }
+
+        input[type="checkbox"]:checked + i {
+            opacity: 1;
+        }
+
+        body::-webkit-scrollbar {
+            width: 6px;
+        }
+        body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body class="min-h-screen">
+
     <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div class="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-emerald-500/20 rounded-full blur-[120px]"></div>
         <div class="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/40 rounded-full blur-[120px]"></div>
@@ -29,8 +80,9 @@
 
     <main class="scroll-container">
         <div class="w-full max-w-[420px]">
+            
             <div class="glass-card w-full p-8 md:p-10 rounded-[2.5rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.4)] relative">
-
+                
                 <a href="/dashboard" target="_top" class="inline-flex items-center space-x-2 text-slate-400 hover:text-emerald-600 transition-colors group mb-8 font-bold text-[10px] uppercase tracking-widest">
                     <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
                     <span>Dashboard</span>
@@ -83,7 +135,7 @@
                         <label for="remember" class="text-xs text-slate-500 cursor-pointer font-bold select-none tracking-tight">Ingat perangkat ini</label>
                     </div>
 
-                    <button type="submit"
+                    <button type="submit" 
                         class="btn-gradient w-full text-white font-black py-5 px-4 rounded-[1.25rem] shadow-xl flex items-center justify-center space-x-3 group active:scale-[0.98]">
                         <span class="tracking-widest uppercase text-sm">Masuk Sistem</span>
                         <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
@@ -104,104 +156,97 @@
 
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 transition-all duration-500 z-50 border border-slate-800">
         <div class="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-            <i class="fas fa-check text-emerald-400" id="toastIcon"></i>
+            <i class="fas fa-check text-emerald-400"></i>
         </div>
         <span id="toastMessage" class="text-sm font-bold tracking-tight"></span>
     </div>
+      <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        eyeIcon.classList.toggle('fa-eye');
+        eyeIcon.classList.toggle('fa-eye-slash');
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const originalContent = submitBtn.innerHTML;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> <span class="tracking-widest uppercase text-sm">Memproses...</span>';
+
+        const email    = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
         const API_URL = "https://adiwiyata-ecotrack-production.up.railway.app/api";
 
-        // ── Jika sudah login, langsung redirect ──────────────────────
-        const existingToken = localStorage.getItem('token');
-        const existingUser  = JSON.parse(localStorage.getItem('user') || 'null');
-        if (existingToken && existingUser) {
-            redirectByRole(existingUser.role);
-            return;
+        try {
+            const response = await fetch(`${API_URL}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+});
+            const data = await response.json();
+
+if (response.ok) {
+    // Simpan data user ke localStorage
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    showToast('Login berhasil! Mengalihkan...', 'success');
+
+    // Redirect berdasarkan role
+    setTimeout(() => {
+        if (data.user.role === 'admin') {
+            window.top.location.href = '/admin';
+        } else if (data.user.role === 'Ketua Pokja' || data.user.role === 'ketua') {
+            window.top.location.href = '/ketua';
+        } else if (data.user.role === 'Pengawas') {
+            window.top.location.href = '/pengawas';
+        } else {
+            window.top.location.href = '/dashboard';
         }
+    }, 1500);
 
-        // ── Toggle password ──────────────────────────────────────────
-        document.getElementById('togglePassword').addEventListener('click', () => {
-            const input = document.getElementById('password');
-            const icon  = document.getElementById('eyeIcon');
-            const isPassword = input.getAttribute('type') === 'password';
-            input.setAttribute('type', isPassword ? 'text' : 'password');
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
-        });
+} else {
+    showToast(data.message || 'Login gagal', 'error');
+}
 
-        // ── Submit login ─────────────────────────────────────────────
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn      = e.target.querySelector('button[type="submit"]');
-            const originalHTML   = submitBtn.innerHTML;
-
-            submitBtn.disabled   = true;
-            submitBtn.innerHTML  = '<i class="fas fa-circle-notch fa-spin"></i> <span class="tracking-widest uppercase text-sm">Memproses...</span>';
-
-            const email    = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                const response = await fetch(`${API_URL}/login`, {
-                    method : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body   : JSON.stringify({ email, password }),
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('token', data.token);
-                    document.cookie = `token=${data.token}; path=/; max-age=${8*3600}`;
-                    localStorage.setItem('user',  JSON.stringify(data.user));
-
-                    showToast('Login berhasil! Mengalihkan...', 'success');
-                    setTimeout(() => redirectByRole(data.user.role), 1500);
-                } else {
-                    showToast(data.message || 'Login gagal', 'error');
-                }
-            } catch (err) {
-                showToast('Tidak dapat terhubung ke server', 'error');
-            } finally {
-                submitBtn.disabled  = false;
-                submitBtn.innerHTML = originalHTML;
-            }
-        });
-
-        // ── Helpers ──────────────────────────────────────────────────
-        function redirectByRole(role) {
-            const map = {
-                'admin'       : '/admin',
-                'ketua'       : '/ketua',
-                'Ketua Pokja' : '/ketua',
-                'pengawas'    : '/pengawas',
-                'Pengawas'    : '/pengawas',
-            };
-            window.top.location.href = map[role] ?? '/dashboard';
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon  = document.getElementById('toastIcon');
-            document.getElementById('toastMessage').innerText = message;
-
-            if (type === 'error') {
-                icon.className = 'fas fa-times text-red-400';
-                toast.classList.add('border-red-800');
-            } else {
-                icon.className = 'fas fa-check text-emerald-400';
-                toast.classList.remove('border-red-800');
-            }
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-                toast.classList.remove('translate-y-0', 'opacity-100');
-            }, 4000);
+        } catch (err) {
+            showToast('Tidak dapat terhubung ke server', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalContent;
         }
     });
-    </script>
+
+    function showToast(message, type = 'success') {
+        toastMessage.innerText = message;
+
+        // Warna toast sesuai type
+        if (type === 'error') {
+            toast.classList.add('border-red-800');
+            toast.querySelector('.w-8').classList.replace('bg-emerald-500/20', 'bg-red-500/20');
+            toast.querySelector('i').classList.replace('text-emerald-400', 'text-red-400');
+            toast.querySelector('i').classList.replace('fa-check', 'fa-times');
+        }
+
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 4000);
+    }
+});
+</script>
 </body>
 </html>
