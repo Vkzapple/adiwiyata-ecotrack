@@ -389,7 +389,46 @@
     </div>
 
     <script>
+        // ── JWT Auth Guard ─────────────────────────────────────────
+        (function guardPage() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.top.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (!['Ketua Pokja', 'ketua'].includes(user.role)) {
+                    window.top.location.href = '/login';
+                    throw new Error('Forbidden');
+                }
+            } catch(e) {
+                if (e.message === 'Forbidden' || e.message === 'Unauthorized') throw e;
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.top.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+        })();
+        // ──────────────────────────────────────────────────────────
+
         const API_URL = "https://adiwiyata-ecotrack-production.up.railway.app/api";
+        // ── JWT Auth Helper ────────────────────────────────────────
+        function getToken() { return localStorage.getItem('token'); }
+        async function authFetch(url, options = {}) {
+            const token = getToken();
+            if (!token) { doLogout(); return null; }
+            const headers = { ...(options.headers || {}), 'Authorization': 'Bearer ' + token };
+            // Jangan override Content-Type jika body adalah FormData
+            if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+                headers['Content-Type'] = 'application/json';
+            }
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401 || res.status === 403) { doLogout(); return null; }
+            return res;
+        }
+        // ──────────────────────────────────────────────────────────
+
         const AI_URL  = "https://adiwiyata-ecotrack-production.up.railway.app/api/ai";
         const user    = JSON.parse(localStorage.getItem('user') || '{}');
         let currentPokjaId = null;
@@ -439,7 +478,7 @@
 
         async function loadPokjaId(namaPokja) {
             try {
-                const res  = await fetch(`${API_URL}/pokja`, { cache: 'no-store' });
+                const res  = await authFetch(`${API_URL}/pokja`, { cache: 'no-store' });
                 const list = await res.json();
                 let found = list.find(p => (p.nama || p.name || '').toLowerCase() === namaPokja.toLowerCase());
                 if (!found) {
@@ -474,7 +513,7 @@
             const tbody = document.getElementById('leaderActivityTable');
             tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>';
             try {
-                const res  = await fetch(`${API_URL}/kegiatan/${currentPokjaId ? '?pokja_id='+currentPokjaId : ''}`, { cache: 'no-store' });
+                const res  = await authFetch(`${API_URL}/kegiatan/${currentPokjaId ? '?pokja_id='+currentPokjaId : ''}`, { cache: 'no-store' });
                 const data = await res.json();
                 document.getElementById('activityCount').innerText = data.length;
 
@@ -579,7 +618,7 @@
             }
             el.innerHTML = '<div class="skeleton h-48 w-full"></div>';
             try {
-                const res  = await fetch(`${AI_URL}/insight/${currentPokjaId}`);
+                const res  = await authFetch(`${AI_URL}/insight/${currentPokjaId}`);
                 const data = await res.json();
                 const labelColor = {
                     "Sangat Aktif" : "text-emerald-600 bg-emerald-50 border-emerald-200",
@@ -662,7 +701,7 @@
             }
 
             try {
-                const resK = await fetch(`${API_URL}/ai/kegiatan`, {
+                const resK = await authFetch(`${API_URL}/ai/kegiatan`, {
                     method : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body   : JSON.stringify({
@@ -680,7 +719,7 @@
                 const kegiatan = await resK.json();
 
                 if (doGenerate) {
-                    const resL = await fetch(`${API_URL}/ai/laporan/generate`, {
+                    const resL = await authFetch(`${API_URL}/ai/laporan/generate`, {
                         method : 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body   : JSON.stringify({
@@ -705,7 +744,7 @@
                     if (nFoto > 0) showToast(`${nFoto} foto dokumentasi berhasil diupload!`);
                 }
 
-                await fetch(`${AI_URL}/recalculate`, { method: 'POST' });
+                await authFetch(`${AI_URL}/recalculate`, { method: 'POST' });
                 showToast(doGenerate ? 'Kegiatan & laporan berhasil disimpan! Menunggu persetujuan pengawas.' : 'Kegiatan berhasil disimpan!');
                 closeModal();
                 loadKegiatan();
@@ -730,6 +769,7 @@
         }
 
         function doLogout() {
+            localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.top.location.href = '/login';
         }
@@ -851,7 +891,7 @@
                 formData.append('kegiatan_id', kegiatanId);
                 formData.append('deskripsi', `Dokumentasi ${idx + 1}`);
                 try {
-                    const res = await fetch(`${API_URL}/ai/dokumentasi/upload`, { method: 'POST', body: formData });
+                    const res = await authFetch(`${API_URL}/ai/dokumentasi/upload`, { method: 'POST', body: formData });
                     return res.ok;
                 } catch(e) { console.error('Upload foto gagal:', e); return false; }
             }));
@@ -861,10 +901,10 @@
         async function generateLaporanSingle(kegiatanId) {
             showToast('Membuat laporan...', 'info');
             try {
-                const resK = await fetch(`${API_URL}/kegiatan/${kegiatanId}`);
+                const resK = await authFetch(`${API_URL}/kegiatan/${kegiatanId}`);
                 if (!resK.ok) { showToast('Kegiatan tidak ditemukan.', 'error'); return; }
                 const k = await resK.json();
-                const res = await fetch(`${API_URL}/ai/laporan/generate`, {
+                const res = await authFetch(`${API_URL}/ai/laporan/generate`, {
                     method : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body   : JSON.stringify({
@@ -896,7 +936,7 @@
         async function deleteKegiatan(id) {
             if (!confirm('Hapus kegiatan ini?')) return;
             try {
-                await fetch(`${API_URL}/kegiatan/${id}`, { method: 'DELETE' });
+                await authFetch(`${API_URL}/kegiatan/${id}`, { method: 'DELETE' });
                 showToast('Kegiatan berhasil dihapus.');
                 loadKegiatan();
             } catch(e) { showToast('Gagal menghapus.', 'error'); }

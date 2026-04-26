@@ -3,12 +3,12 @@ const mysql = require("mysql2/promise");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1) Serve frontend files so open via http://localhost:3000/static/admin/index.html (same-origin)
 app.use(
     "/static",
     express.static(path.join(__dirname, "..", "website", "public", "static")),
@@ -16,6 +16,9 @@ app.use(
 app.use(express.static(path.join(__dirname, "..", "website", "public")));
 
 require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET || "adiwiyata_secret_key_ganti_di_production";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
 
 const pool = mysql.createPool({
     host: process.env.MYSQLHOST,
@@ -28,30 +31,55 @@ const pool = mysql.createPool({
     queueLimit: 0,
 });
 
-// safer query wrapper: throw error so route-level try/catch can handle
 async function query(sql, params = []) {
     try {
         const [rows] = await pool.execute(sql, params);
         return rows;
     } catch (err) {
-        // attach query for easier debugging
         err.query = sql;
         throw err;
     }
 }
 
-// 3) Routes (async/await)
+// ── JWT Middleware ──────────────────────────────────────────────
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({ message: "Token tidak ditemukan, silakan login ulang" });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            if (err.name === "TokenExpiredError") {
+                return res.status(401).json({ message: "Sesi telah berakhir, silakan login ulang" });
+            }
+            return res.status(403).json({ message: "Token tidak valid" });
+        }
+        req.user = decoded;
+        next();
+    });
+}
+
+function requireRole(...roles) {
+    return (req, res, next) => {
+        if (!req.user) return res.status(401).json({ message: "Tidak terautentikasi" });
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ message: "Akses ditolak: peran tidak diizinkan" });
+        }
+        next();
+    };
+}
+
+// ── Auth Routes (public) ────────────────────────────────────────
 app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password)
-        return res
-            .status(400)
-            .json({ message: "Email dan password wajib diisi" });
+        return res.status(400).json({ message: "Email dan password wajib diisi" });
 
     try {
-        const users = await query("SELECT * FROM users WHERE email = ?", [
-            email,
-        ]);
+        const users = await query("SELECT * FROM users WHERE email = ?", [email]);
         if (users.length === 0)
             return res.status(401).json({ message: "User tidak ditemukan" });
 
@@ -59,29 +87,28 @@ app.post("/api/login", async (req, res) => {
         const match = await bcrypt.compare(password, user.password || "");
         if (!match) return res.status(401).json({ message: "Password salah" });
 
-        res.json({
-            message: "Login Berhasil",
-            user: {
-                id: user.id,
-                name: user.name,
-                role: user.role,
-                pokja: user.pokja,
-            },
-        });
+        const payload = { id: user.id, name: user.name, role: user.role, pokja: user.pokja };
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+        res.json({ message: "Login Berhasil", token, user: payload });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Kesalahan Server" });
     }
 });
 
-app.post("/api/register", async (req, res) => {
+app.get("/api/me", authenticateToken, (req, res) => {
+    res.json({ user: req.user });
+});
+
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+
+// ── User Management (admin only) ────────────────────────────────
+app.post("/api/register", authenticateToken, requireRole("admin"), async (req, res) => {
     const { name, email, password, role, pokja } = req.body;
     if (!name || !email || !password)
-        return res
-            .status(400)
-            .json({ message: "Name, email, dan password wajib diisi" });
+        return res.status(400).json({ message: "Name, email, dan password wajib diisi" });
 
-    // Sanitize pokja — jangan simpan string "undefined" atau kosong
     const cleanPokja = (pokja && pokja !== "undefined") ? pokja : null;
 
     try {
@@ -99,11 +126,9 @@ app.post("/api/register", async (req, res) => {
     }
 });
 
-app.get("/api/users", async (req, res) => {
+app.get("/api/users", authenticateToken, requireRole("admin"), async (req, res) => {
     try {
-        const users = await query(
-            "SELECT id, name, email, role, pokja FROM users",
-        );
+        const users = await query("SELECT id, name, email, role, pokja FROM users");
         res.json(users);
     } catch (err) {
         console.error(err);
@@ -111,7 +136,7 @@ app.get("/api/users", async (req, res) => {
     }
 });
 
-app.delete("/api/users/:id", async (req, res) => {
+app.delete("/api/users/:id", authenticateToken, requireRole("admin"), async (req, res) => {
     const { id } = req.params;
     try {
         await query("DELETE FROM users WHERE id = ?", [id]);
@@ -122,79 +147,49 @@ app.delete("/api/users/:id", async (req, res) => {
     }
 });
 
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
-
-// --- New: health-check DB before starting server ---
-async function testDbConnection() {
-    let conn;
-    try {
-        conn = await pool.getConnection();
-        await conn.ping();
-        console.log("Koneksi DB OK (ping berhasil)");
-    } finally {
-        if (conn) conn.release();
-    }
-}
+// ── AI Proxy Routes (protected) ─────────────────────────────────
 const AI_URL = process.env.AI_URL || "http://127.0.0.1:8000";
 async function fetchAI(path, options = {}) {
     const response = await fetch(`${AI_URL}${path}`, options);
     return response.json();
 }
 
-app.get("/api/ai/dashboard", async (req, res) => {
-    try {
-        const data = await fetchAI("/analytics/dashboard");
-        res.json(data);
-    } catch (err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+app.get("/api/ai/dashboard", authenticateToken, async (req, res) => {
+    try { res.json(await fetchAI("/analytics/dashboard")); }
+    catch (err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-app.get("/api/ai/ranking", async (req, res) => {
-    try {
-        const data = await fetchAI("/analytics/ranking");
-        res.json(data);
-    } catch (err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+app.get("/api/ai/ranking", authenticateToken, async (req, res) => {
+    try { res.json(await fetchAI("/analytics/ranking")); }
+    catch (err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-app.get("/api/ai/insight/:pokja_id", async (req, res) => {
-    try {
-        const data = await fetchAI(`/analytics/pokja/${req.params.pokja_id}/insight`);
-        res.json(data);
-    } catch (err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+app.get("/api/ai/insight/:pokja_id", authenticateToken, async (req, res) => {
+    try { res.json(await fetchAI(`/analytics/pokja/${req.params.pokja_id}/insight`)); }
+    catch (err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-app.post("/api/ai/kegiatan", async (req, res) => {
+app.post("/api/ai/kegiatan", authenticateToken, async (req, res) => {
     try {
-        const data = await fetchAI("/kegiatan/", {
+        res.json(await fetchAI("/kegiatan/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(req.body)
-        });
-        res.json(data);
-    } catch (err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+        }));
+    } catch (err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-app.post("/api/ai/laporan/generate", async (req, res) => {
+app.post("/api/ai/laporan/generate", authenticateToken, async (req, res) => {
     try {
-        const data = await fetchAI("/laporan/generate", {
+        res.json(await fetchAI("/laporan/generate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(req.body)
-        });
-        res.json(data);
-    } catch (err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+        }));
+    } catch (err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
-// Review laporan oleh pengawas
-app.post("/api/laporan/:id/review", async (req, res) => {
+
+app.post("/api/laporan/:id/review", authenticateToken, requireRole("Pengawas", "admin"), async (req, res) => {
     const { id } = req.params;
     const { status_approve, catatan_pengawas, approved_by } = req.body;
     try {
@@ -208,129 +203,90 @@ app.post("/api/laporan/:id/review", async (req, res) => {
         res.status(500).json({ message: "Gagal memperbarui laporan" });
     }
 });
-// GET semua laporan (proxy ke Python)
-app.get("/api/laporan/", async (req, res) => {
-    try {
-        const data = await fetchAI("/laporan/"); 
-        res.json(data);
-    } catch(err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
-})
 
-// GET kegiatan semua (proxy ke Python)
-app.get("/api/kegiatan/", async (req, res) => {
+app.get("/api/laporan/", authenticateToken, async (req, res) => {
+    try { res.json(await fetchAI("/laporan/")); }
+    catch(err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
+});
+
+app.get("/api/kegiatan/", authenticateToken, async (req, res) => {
     try {
         const qs = req.query.pokja_id ? `?pokja_id=${req.query.pokja_id}` : "";
-        const data = await fetchAI(`/kegiatan/${qs}`);
-        res.json(data);
-    } catch(err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+        res.json(await fetchAI(`/kegiatan/${qs}`));
+    } catch(err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-// GET kegiatan by id (proxy ke Python)
-app.get("/api/kegiatan/:id", async (req, res) => {
-    try {
-        const data = await fetchAI(`/kegiatan/${req.params.id}`);
-        res.json(data);
-    } catch(err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+app.get("/api/kegiatan/:id", authenticateToken, async (req, res) => {
+    try { res.json(await fetchAI(`/kegiatan/${req.params.id}`)); }
+    catch(err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-// DELETE kegiatan (proxy ke Python)
-app.delete("/api/kegiatan/:id", async (req, res) => {
-    try {
-        const data = await fetchAI(`/kegiatan/${req.params.id}`, { method: "DELETE" });
-        res.json(data);
-    } catch(err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+app.delete("/api/kegiatan/:id", authenticateToken, async (req, res) => {
+    try { res.json(await fetchAI(`/kegiatan/${req.params.id}`, { method: "DELETE" })); }
+    catch(err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-// POST dokumentasi upload (proxy ke Python, multipart passthrough)
-app.post("/api/ai/dokumentasi/upload", async (req, res) => {
+app.post("/api/ai/dokumentasi/upload", authenticateToken, async (req, res) => {
     try {
         const fetch = (await import("node-fetch")).default;
-        const FormData = (await import("form-data")).default;
-        // Re-stream body as-is to Python
         const response = await fetch(`${AI_URL}/dokumentasi/upload`, {
             method: "POST",
             headers: req.headers,
             body: req,
         });
-        const data = await response.json();
-        res.status(response.status).json(data);
-    } catch(err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+        res.status(response.status).json(await response.json());
+    } catch(err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-// GET pokja semua (proxy ke Python)
-app.get("/api/pokja", async (req, res) => {
-    try {
-        const data = await fetchAI("/pokja/");  // ← pakai fetchAI
-        res.json(data);
-    } catch(err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+app.get("/api/pokja", authenticateToken, async (req, res) => {
+    try { res.json(await fetchAI("/pokja/")); }
+    catch(err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
 
-app.post("/api/ai/recalculate", async (req, res) => {
-    try {
-        const data = await fetchAI("/analytics/recalculate", { method: "POST" });
-        res.json(data);
-    } catch (err) {
-        res.status(503).json({ message: "AI service tidak tersedia" });
-    }
+app.post("/api/ai/recalculate", authenticateToken, requireRole("admin"), async (req, res) => {
+    try { res.json(await fetchAI("/analytics/recalculate", { method: "POST" })); }
+    catch (err) { res.status(503).json({ message: "AI service tidak tersedia" }); }
 });
+
+// ── Server lifecycle ─────────────────────────────────────────────
+async function testDbConnection() {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        await conn.ping();
+        console.log("Koneksi DB OK (ping berhasil)");
+    } finally {
+        if (conn) conn.release();
+    }
+}
+
 let server = null;
 async function start() {
     try {
         await testDbConnection();
         const PORT = process.env.PORT || 3001;
-server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server berjalan di http://0.0.0.0:${PORT}`);
-});
+        server = app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Server berjalan di http://0.0.0.0:${PORT}`);
+        });
     } catch (err) {
         console.error("Gagal menghubungkan ke database. Server tidak dimulai.");
         console.error(err && err.message ? err.message : err);
-
-        try {
-            await pool.end();
-        } catch (e) {
-
-        }
+        try { await pool.end(); } catch (e) {}
         process.exit(1);
     }
 }
 
 async function shutdown(code = 0) {
     console.log("Shutdown initiated...");
-    if (server) {
-        server.close(() => console.log("HTTP server closed"));
-    }
-    try {
-        await pool.end();
-        console.log("DB pool closed");
-    } catch (e) {
-        console.error("Error closing pool:", e);
-    }
+    if (server) server.close(() => console.log("HTTP server closed"));
+    try { await pool.end(); console.log("DB pool closed"); }
+    catch (e) { console.error("Error closing pool:", e); }
     process.exit(code);
 }
 
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
-
-process.on("unhandledRejection", (reason) => {
-    console.error("Unhandled Rejection at:", reason);
-
-});
-process.on("uncaughtException", (err) => {
-    console.error("Uncaught Exception:", err);
-
-    shutdown(1);
-});
+process.on("unhandledRejection", (reason) => { console.error("Unhandled Rejection at:", reason); });
+process.on("uncaughtException", (err) => { console.error("Uncaught Exception:", err); shutdown(1); });
 
 start();

@@ -198,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 if (response.ok) {
     // Simpan data user ke localStorage
+    localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
 
     showToast('Login berhasil! Mengalihkan...', 'success');

@@ -295,7 +295,46 @@
     </div>
 
     <script>
+        // ── JWT Auth Guard ─────────────────────────────────────────
+        (function guardPage() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.top.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (!['Pengawas', 'admin'].includes(user.role)) {
+                    window.top.location.href = '/login';
+                    throw new Error('Forbidden');
+                }
+            } catch(e) {
+                if (e.message === 'Forbidden' || e.message === 'Unauthorized') throw e;
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.top.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+        })();
+        // ──────────────────────────────────────────────────────────
+
         const API_URL = "https://adiwiyata-ecotrack-production.up.railway.app/api";
+        // ── JWT Auth Helper ────────────────────────────────────────
+        function getToken() { return localStorage.getItem('token'); }
+        async function authFetch(url, options = {}) {
+            const token = getToken();
+            if (!token) { doLogout(); return null; }
+            const headers = { ...(options.headers || {}), 'Authorization': 'Bearer ' + token };
+            // Jangan override Content-Type jika body adalah FormData
+            if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+                headers['Content-Type'] = 'application/json';
+            }
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401 || res.status === 403) { doLogout(); return null; }
+            return res;
+        }
+        // ──────────────────────────────────────────────────────────
+
         const AI_URL  = "https://adiwiyata-ecotrac k-production.up.railway.app/api/ai";
         const user    = JSON.parse(localStorage.getItem('user') || '{}');
         let currentReviewId = null;
@@ -313,7 +352,7 @@
         // ── Logout modal ──────────────────────────────────────────────────────
         function confirmLogout()    { document.getElementById('logoutModal').classList.remove('hidden'); }
         function closeLogoutModal() { document.getElementById('logoutModal').classList.add('hidden'); }
-        function doLogout()         { localStorage.removeItem('user'); window.top.location.href = '/login'; }
+        function doLogout()         { localStorage.removeItem('token'); localStorage.removeItem('user'); window.top.location.href = '/login'; }
 
         // ── Badge status ──────────────────────────────────────────────────────
         const statusApprove = {
@@ -360,7 +399,7 @@
         async function loadStats() {
             try {
                 
-                const res = await fetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
+                const res = await authFetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
                 const data = await res.json();
                 const pending  = data.filter(l => (l.status_approve || 'pending') === 'pending').length;
                 const approved = data.filter(l => l.status_approve === 'approved').length;
@@ -379,7 +418,7 @@
             const el = document.getElementById('laporanPending');
             el.innerHTML = '<div class="skeleton h-48 w-full"></div><div class="skeleton h-48 w-full mt-4"></div>';
             try {
-                const res = await fetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
+                const res = await authFetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
 
                 const data    = await res.json();
                 const pending = data.filter(l => (l.status_approve || 'pending') === 'pending');
@@ -403,7 +442,7 @@
             const el = document.getElementById('laporanSemua');
             el.innerHTML = '<div class="skeleton h-48 w-full"></div>';
             try {
-                const res = await fetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
+                const res = await authFetch(`${API_URL}/laporan/?t=${Date.now()}`, { cache: 'no-store' });
                 const data = await res.json();
                 if (!data.length) {
                     el.innerHTML = '<div class="text-center p-12 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold">Belum ada laporan.</div>';
@@ -462,13 +501,13 @@
             const tbody = document.getElementById('kegiatanTable');
             tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center"><div class="skeleton h-6 w-48 mx-auto"></div></td></tr>';
             try {
-                const res  = await fetch(`${API_URL}/kegiatan/`);
+                const res  = await authFetch(`${API_URL}/kegiatan/`);
                 const data = await res.json();
                 if (!data.length) {
                     tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic font-bold">Belum ada kegiatan.</td></tr>';
                     return;
                 }
-                const pokjaRes  = await fetch(`${API_URL}/pokja`);
+                const pokjaRes  = await authFetch(`${API_URL}/pokja`);
                 const pokjaList = await pokjaRes.json();
                 const pokjaMap  = {};
                 pokjaList.forEach(p => pokjaMap[p.id] = p.nama || p.name);
@@ -519,7 +558,7 @@
     document.querySelectorAll('#reviewModal button').forEach(b => b.disabled = true);
     
     try {
-        const res = await fetch(`${API_URL}/laporan/${currentReviewId}/review`, {
+        const res = await authFetch(`${API_URL}/laporan/${currentReviewId}/review`, {
             method : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body   : JSON.stringify({ 
@@ -545,8 +584,8 @@
             // Fetch ulang dengan timestamp baru
             const t = Date.now();
             const [statsRes, pendingRes] = await Promise.all([
-                fetch(`${API_URL}/laporan/?t=${t}`,     { cache: 'no-store' }),
-                fetch(`${API_URL}/laporan/?t=${t + 1}`, { cache: 'no-store' }),
+                authFetch(`${API_URL}/laporan/?t=${t}`,     { cache: 'no-store' }),
+                authFetch(`${API_URL}/laporan/?t=${t + 1}`, { cache: 'no-store' }),
             ]);
 
             const statsData   = await statsRes.json();
